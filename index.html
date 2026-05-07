@@ -37,8 +37,8 @@
       padding: 48px 16px 14px;
       position: sticky; top: 0; z-index: 50;
     }
-    .header h1   { color:#fff; font-size:20px; font-weight:600; }
-    .header p    { color:rgba(255,255,255,0.65); font-size:12px; margin-top:2px; }
+    .header h1   { color:#fff; font-size:26px; font-weight:600; }
+    .header p    { color:rgba(255,255,255,0.65); font-size:15px; margin-top:2px; }
     .header-alerta {
       margin-top:10px;
       background:rgba(255,255,255,0.13);
@@ -56,7 +56,7 @@
       0%,100%{ box-shadow:0 0 0 0 rgba(255,107,107,0.6); }
       50%    { box-shadow:0 0 0 5px rgba(255,107,107,0); }
     }
-    .header-alerta span { color:#fff; font-size:12px; font-weight:500; flex:1; }
+    .header-alerta span { color:#fff; font-size:15px; font-weight:500; flex:1; }
 
     /* ── TABS ── */
     .tabs {
@@ -68,10 +68,10 @@
     }
     .tabs::-webkit-scrollbar { display:none; }
     .tab {
-      flex-shrink:0; padding:11px 12px 9px;
-      font-size:11px; font-weight:500; color:var(--texto2);
+      flex-shrink:0; padding:14px 14px 12px;
+      font-size:14px; font-weight:500; color:var(--texto2);
       cursor:pointer; border:none; background:var(--blanco);
-      border-bottom:2px solid transparent;
+      border-bottom:3px solid transparent;
       font-family:'DM Sans',sans-serif; white-space:nowrap;
     }
     .tab.active { color:var(--verde); border-bottom-color:var(--verde); font-weight:600; }
@@ -139,9 +139,9 @@
 
     /* ── INPUTS ── */
     .inp {
-      flex:1; padding:10px 12px;
+      flex:1; padding:12px 14px;
       border:1px solid var(--gris-borde); border-radius:10px;
-      font-size:14px; font-family:'DM Sans',sans-serif;
+      font-size:16px; font-family:'DM Sans',sans-serif;
       background:var(--blanco); color:var(--texto); outline:none;
     }
     .inp:focus { border-color:var(--verde); }
@@ -150,8 +150,8 @@
 
     .btn-g {
       background:var(--verde); color:#fff; border:none;
-      border-radius:10px; padding:10px 16px;
-      font-size:14px; font-weight:600;
+      border-radius:10px; padding:12px 18px;
+      font-size:16px; font-weight:600;
       font-family:'DM Sans',sans-serif; cursor:pointer;
     }
     .btn-g:active { opacity:0.85; }
@@ -162,42 +162,42 @@
       border-radius:14px; padding:14px; margin-bottom:10px;
     }
     .result-card.alerta { border-color:var(--rojo); border-width:1.5px; }
-    .prod-name { font-size:16px;font-weight:600;color:var(--texto);margin-bottom:3px; }
-    .prod-code { font-family:'DM Mono',monospace;font-size:11px;color:var(--texto2);margin-bottom:8px; }
+    .prod-name { font-size:18px;font-weight:600;color:var(--texto);margin-bottom:3px; }
+    .prod-code { font-family:'DM Mono',monospace;font-size:13px;color:var(--texto2);margin-bottom:8px; }
     .alerta-badge {
       background:var(--rojo-bg); color:var(--rojo);
-      font-size:11px; font-weight:600;
-      padding:4px 9px; border-radius:6px;
+      font-size:13px; font-weight:600;
+      padding:5px 10px; border-radius:6px;
       display:inline-block; margin-bottom:10px;
     }
     .stock-row { display:flex;align-items:flex-end;gap:8px;margin-bottom:14px; }
-    .stock-num { font-size:44px;font-weight:600;color:var(--verde);line-height:1; }
+    .stock-num { font-size:52px;font-weight:600;color:var(--verde);line-height:1; }
     .stock-num.bajo { color:var(--rojo); }
-    .stock-label { font-size:12px;color:var(--texto2); padding-bottom:6px; }
-    .stock-min { font-size:11px;color:#aaa;margin-top:2px; }
+    .stock-label { font-size:15px;color:var(--texto2); padding-bottom:6px; }
+    .stock-min { font-size:13px;color:#aaa;margin-top:2px; }
     .actions { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
     .btn-e {
       background:var(--verde-bg); color:#166534;
       border:1px solid #86EFAC; border-radius:10px;
-      padding:10px; font-size:14px; font-weight:600;
+      padding:12px; font-size:16px; font-weight:600;
       cursor:pointer; text-align:center; font-family:'DM Sans',sans-serif;
     }
     .btn-s {
       background:var(--rojo-bg); color:var(--rojo);
       border:1px solid #FCA5A5; border-radius:10px;
-      padding:10px; font-size:14px; font-weight:600;
+      padding:12px; font-size:16px; font-weight:600;
       cursor:pointer; text-align:center; font-family:'DM Sans',sans-serif;
     }
     .btn-e:active,.btn-s:active { opacity:0.8; }
     .qty-row { display:flex;align-items:center;gap:6px;margin-top:8px; }
     .qty-row input {
-      width:60px; padding:7px 8px;
+      width:65px; padding:8px 8px;
       border:1px solid var(--gris-borde); border-radius:8px;
-      font-size:14px; text-align:center;
+      font-size:16px; text-align:center;
       background:var(--blanco); color:var(--texto);
       font-family:'DM Mono',monospace;
     }
-    .qty-row label { font-size:12px;color:var(--texto2); }
+    .qty-row label { font-size:14px;color:var(--texto2); }
 
     /* ── STOCK LIST ── */
     .search-box {
@@ -217,12 +217,12 @@
       display:flex; align-items:center; justify-content:space-between;
     }
     .prod-row.low { border-left:3px solid var(--rojo); }
-    .prod-info .name { font-size:13px;font-weight:600;color:var(--texto); }
-    .prod-info .code { font-family:'DM Mono',monospace;font-size:10px;color:#bbb;margin-top:2px; }
-    .prod-stock .num { font-size:22px;font-weight:600;color:var(--verde);text-align:right; }
+    .prod-info .name { font-size:15px;font-weight:600;color:var(--texto); }
+    .prod-info .code { font-family:'DM Mono',monospace;font-size:12px;color:#bbb;margin-top:2px; }
+    .prod-stock .num { font-size:24px;font-weight:600;color:var(--verde);text-align:right; }
     .prod-stock .num.low { color:var(--rojo); }
-    .prod-stock .unit { font-size:10px;color:#bbb;text-align:right; }
-    .badge-low { font-size:9px;background:var(--rojo-bg);color:var(--rojo);padding:2px 5px;border-radius:4px;margin-left:4px;font-weight:600; }
+    .prod-stock .unit { font-size:12px;color:#bbb;text-align:right; }
+    .badge-low { font-size:11px;background:var(--rojo-bg);color:var(--rojo);padding:3px 6px;border-radius:4px;margin-left:4px;font-weight:600; }
     .btn-borrar-prod {
       background:none; border:none; color:#ccc;
       font-size:16px; cursor:pointer; padding:4px 6px;
@@ -318,9 +318,9 @@
     .hist-icon.entrada { background:var(--verde-bg);color:#166534; }
     .hist-icon.salida  { background:var(--rojo-bg);color:var(--rojo); }
     .hist-content { flex:1;min-width:0; }
-    .hist-content .hname { font-size:13px;font-weight:600;color:var(--texto);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-    .hist-content .hdate { font-size:10px;color:#bbb;margin-top:2px; }
-    .hist-qty { font-size:15px;font-weight:700;white-space:nowrap; }
+    .hist-content .hname { font-size:15px;font-weight:600;color:var(--texto);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .hist-content .hdate { font-size:12px;color:#bbb;margin-top:2px; }
+    .hist-qty { font-size:17px;font-weight:700;white-space:nowrap; }
     .hist-qty.pos { color:#166534; }
     .hist-qty.neg { color:var(--rojo); }
     .btn-borrar-hist {
@@ -854,19 +854,35 @@ function generarPDF() {
     pequeña: { cols:5, rows:11, qrSize:50,  cellW:119, cellH:65,  fontSize:7 },
   }[tamañoEtiq];
 
+  // Generamos QR en canvas y obtenemos base64
   const tmpDiv = document.getElementById('qr-hidden');
   tmpDiv.innerHTML = '';
   new QRCode(tmpDiv, { text:prod.codigo, width:cfg.qrSize*2, height:cfg.qrSize*2, correctLevel:QRCode.CorrectLevel.M });
 
   setTimeout(() => {
-    const qrEl  = tmpDiv.querySelector('img') || tmpDiv.querySelector('canvas');
-    const qrSrc = qrEl?.tagName==='IMG' ? qrEl.src : qrEl?.toDataURL() || '';
+    // Siempre usar canvas para obtener base64 fiable
+    let qrBase64 = '';
+    const canvas = tmpDiv.querySelector('canvas');
+    if (canvas) {
+      qrBase64 = canvas.toDataURL('image/png');
+    } else {
+      // Fallback: crear canvas manualmente desde img
+      const img = tmpDiv.querySelector('img');
+      if (img) {
+        const c = document.createElement('canvas');
+        c.width = cfg.qrSize*2; c.height = cfg.qrSize*2;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        qrBase64 = c.toDataURL('image/png');
+      }
+    }
+
     let filas = '';
     for (let r=0; r<cfg.rows; r++) {
       let celdas = '';
       for (let c=0; c<cfg.cols; c++) {
         celdas += `<td style="width:${cfg.cellW}px;height:${cfg.cellH}px;border:1px dashed #ccc;text-align:center;vertical-align:middle;padding:4px;">
-          <img src="${qrSrc}" width="${cfg.qrSize}" height="${cfg.qrSize}" style="display:block;margin:0 auto 3px;"/>
+          <img src="${qrBase64}" width="${cfg.qrSize}" height="${cfg.qrSize}" style="display:block;margin:0 auto 3px;"/>
           <div style="font-size:${cfg.fontSize}px;font-weight:700;font-family:Arial;line-height:1.2;word-break:break-word;">${prod.nombre}</div>
           <div style="font-size:${cfg.fontSize-1}px;color:#888;font-family:monospace;">${prod.codigo}</div>
         </td>`;
