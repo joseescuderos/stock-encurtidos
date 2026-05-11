@@ -728,17 +728,21 @@ function pararCamara() {
 async function buscarManual() {
   const codigo = document.getElementById('manualCode').value.trim().toUpperCase();
   if (!codigo) return;
+
+  // Buscar primero en memoria (instantáneo)
+  const prod = productos.find(p => p.codigo === codigo);
+  if (prod) {
+    mostrarResultado(prod);
+    return;
+  }
+
+  // Si no está en memoria recargar del servidor
   mostrarCargando('resultCard');
   try {
-    const prod = productos.find(p => p.codigo === codigo);
-    if (prod) mostrarResultado(prod);
-    else {
-      // Intentar cargar desde servidor por si acaso
-      await cargarProductos();
-      const prod2 = productos.find(p => p.codigo === codigo);
-      if (prod2) mostrarResultado(prod2);
-      else { showToast('Producto no encontrado'); ocultarResultado(); }
-    }
+    await cargarProductos();
+    const prod2 = productos.find(p => p.codigo === codigo);
+    if (prod2) mostrarResultado(prod2);
+    else { showToast('Producto no encontrado'); ocultarResultado(); }
   } catch(e) {
     showToast('Error de conexión');
   }
