@@ -579,8 +579,10 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ── CONFIG ──
-const API = 'https://script.google.com/macros/s/AKfycbxeWSl7Pl8GbJwSnjo4TheHNMev7jwrqI0-lhRPd4MXfeQ0wrd3cvVSKTzaxynskJwA/exec';
+// ── CONFIG SheetDB ──
+const SHEETDB     = 'https://sheetdb.io/api/v1/gipkt23wthjl9';
+const SHEET_PROD  = 'PRODUCTOS';
+const SHEET_MOV   = 'MOVIMIENTOS';
 
 let productos    = [];
 let historial    = [];
@@ -595,32 +597,32 @@ const INFO_TAM = {
   pequeña: { etiquetas:55, desc:'55 etiquetas por A4 (3×2,5 cm)' },
 };
 
-// ── API CALL via JSONP (evita CORS en móvil) ──
-function api(params) {
-  return new Promise((resolve, reject) => {
-    const cbName = 'cb_' + Date.now();
-    const url = API + '?' + new URLSearchParams(params) + '&callback=' + cbName;
-    const script = document.createElement('script');
-    const timer = setTimeout(() => {
-      try { document.body.removeChild(script); } catch(e) {}
-      delete window[cbName];
-      reject(new Error('Timeout — comprueba la conexión'));
-    }, 30000);
-    window[cbName] = (data) => {
-      clearTimeout(timer);
-      delete window[cbName];
-      try { document.body.removeChild(script); } catch(e) {}
-      resolve(data);
-    };
-    script.src = url;
-    script.onerror = () => {
-      clearTimeout(timer);
-      delete window[cbName];
-      try { document.body.removeChild(script); } catch(e) {}
-      reject(new Error('Error de red'));
-    };
-    document.body.appendChild(script);
+// ── API SheetDB ──
+async function sheetGet(sheet) {
+  const r = await fetch(`${SHEETDB}?sheet=${sheet}`);
+  return await r.json();
+}
+async function sheetPost(sheet, data) {
+  const r = await fetch(`${SHEETDB}?sheet=${sheet}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data })
   });
+  return await r.json();
+}
+async function sheetPatch(sheet, col, val, data) {
+  const r = await fetch(`${SHEETDB}/${col}/${encodeURIComponent(val)}?sheet=${sheet}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data })
+  });
+  return await r.json();
+}
+async function sheetDelete(sheet, col, val) {
+  const r = await fetch(`${SHEETDB}/${col}/${encodeURIComponent(val)}?sheet=${sheet}`, {
+    method: 'DELETE'
+  });
+  return await r.json();
 }
 
 // ── INIT ──
@@ -631,15 +633,21 @@ async function init() {
 
 async function cargarProductos() {
   try {
-    const r = await api({ accion:'listar' });
-    if (r.ok) {
-      productos = r.productos;
-      document.getElementById('totalProds').textContent = productos.length;
-      actualizarAlertaHeader();
-      renderStock(productos);
-      cargarSelectEtiquetas();
-      calcularSiguienteCodigo();
-    }
+    const datos = await sheetGet(SHEET_PROD);
+    productos = datos.map(p => ({
+      id:     p.ID,
+      nombre: p.NOMBRE,
+      codigo: p.CODIGO,
+      stock:  parseFloat(p.STOCK) || 0,
+      minimo: parseFloat(p.MINIMO) || 0,
+      unidad: p.UNIDAD || 'ud',
+      alerta: parseFloat(p.STOCK) <= parseFloat(p.MINIMO) && parseFloat(p.MINIMO) > 0
+    }));
+    document.getElementById('totalProds').textContent = productos.length;
+    actualizarAlertaHeader();
+    renderStock(productos);
+    cargarSelectEtiquetas();
+    calcularSiguienteCodigo();
   } catch(e) {
     showToast('Error conectando con el servidor');
   }
@@ -647,8 +655,17 @@ async function cargarProductos() {
 
 async function cargarHistorial() {
   try {
-    // El historial se carga desde MOVIMIENTOS via listar
-    // Para la demo lo dejamos vacío hasta que haya movimientos
+    const datos = await sheetGet(SHEET_MOV);
+    historial = datos.map((h, i) => ({
+      fila:     i + 2,
+      fecha:    h.FECHA,
+      hora:     h.HORA,
+      nombre:   h.NOMBRE,
+      tipo:     h.TIPO,
+      cantidad: parseFloat(h.CANTIDAD) || 0,
+      stock_final: parseFloat(h.STOCK_FINAL) || 0
+    }));
+    renderHistorial(historial);
   } catch(e) {}
 }
 
@@ -713,9 +730,15 @@ async function buscarManual() {
   if (!codigo) return;
   mostrarCargando('resultCard');
   try {
-    const r = await api({ accion:'buscar', codigo });
-    if (r.ok) mostrarResultado(r);
-    else { showToast('Producto no encontrado'); ocultarResultado(); }
+    const prod = productos.find(p => p.codigo === codigo);
+    if (prod) mostrarResultado(prod);
+    else {
+      // Intentar cargar desde servidor por si acaso
+      await cargarProductos();
+      const prod2 = productos.find(p => p.codigo === codigo);
+      if (prod2) mostrarResultado(prod2);
+      else { showToast('Producto no encontrado'); ocultarResultado(); }
+    }
   } catch(e) {
     showToast('Error de conexión');
   }
@@ -750,18 +773,34 @@ async function registrar(tipo) {
   const qty = parseInt(document.getElementById(tipo==='entrada'?'qtyEntrada':'qtySalida').value);
   if (isNaN(qty)||qty<1) { showToast('Cantidad inválida'); return; }
 
+  const stockActual = parseFloat(prodActual.stock) || 0;
+  let nuevoStock;
+  if      (tipo === 'entrada') nuevoStock = stockActual + qty;
+  else if (tipo === 'salida')  nuevoStock = stockActual - qty;
+  if (nuevoStock < 0) { showToast('Stock insuficiente'); return; }
+
   showToast('Guardando...');
   try {
-    const r = await api({ accion:tipo, codigo:prodActual.codigo, cantidad:qty });
-    if (r.ok) {
-      prodActual = r;
-      prodActual.codigo = document.getElementById('rCodigo').textContent.replace('Código: ','');
-      mostrarResultado({ ...r, alerta:r.alerta, stock:r.stockNuevo });
-      await cargarProductos();
-      showToast(tipo==='entrada' ? '✅ +'+qty+' unidades añadidas' : '✅ −'+qty+' unidades retiradas');
-    } else {
-      showToast('❌ ' + r.error);
-    }
+    // Actualizar stock en PRODUCTOS
+    await sheetPatch(SHEET_PROD, 'CODIGO', prodActual.codigo, { STOCK: nuevoStock });
+
+    // Registrar en MOVIMIENTOS
+    const ahora = new Date();
+    const fecha = ahora.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit'});
+    const hora  = ahora.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+    await sheetPost(SHEET_MOV, {
+      FECHA: fecha, HORA: hora,
+      ID: prodActual.id, NOMBRE: prodActual.nombre,
+      TIPO: tipo.toUpperCase(),
+      CANTIDAD: tipo==='salida' ? -qty : qty,
+      STOCK_FINAL: nuevoStock
+    });
+
+    prodActual.stock = nuevoStock;
+    prodActual.alerta = nuevoStock <= prodActual.minimo && prodActual.minimo > 0;
+    mostrarResultado(prodActual);
+    await cargarProductos();
+    showToast(tipo==='entrada' ? '✅ +'+qty+' unidades añadidas' : '✅ −'+qty+' unidades retiradas');
   } catch(e) {
     showToast('Error de conexión');
   }
@@ -802,20 +841,27 @@ function calcularSiguienteCodigo() {
 
 async function guardarProducto() {
   const nombre = document.getElementById('nuevoNombre').value.trim();
-  const stock  = document.getElementById('nuevoStock').value;
-  const minimo = document.getElementById('nuevoMinimo').value;
+  const stock  = parseFloat(document.getElementById('nuevoStock').value) || 0;
+  const minimo = parseFloat(document.getElementById('nuevoMinimo').value) || 0;
   if (!nombre) { showToast('Escribe el nombre del producto'); return; }
+
+  const nums = productos.map(p => parseInt(String(p.codigo).replace('ENC',''))||0);
+  const sig  = productos.length ? Math.max(...nums) + 1 : 1;
+  const nuevoCodigo = 'ENC' + String(sig).padStart(3,'0');
 
   showToast('Guardando...');
   try {
-    const r = await api({ accion:'nuevo', nombre, stock, minimo, unidad:'ud' });
-    if (r.ok) {
-      showToast('✅ ' + r.nombre + ' añadido');
-      document.getElementById('nuevoNombre').value = '';
-      await cargarProductos();
-    } else {
-      showToast('❌ ' + r.error);
-    }
+    await sheetPost(SHEET_PROD, {
+      ID: sig,
+      NOMBRE: nombre.toUpperCase(),
+      CODIGO: nuevoCodigo,
+      STOCK: stock,
+      MINIMO: minimo,
+      UNIDAD: 'ud'
+    });
+    showToast('✅ ' + nombre.toUpperCase() + ' añadido');
+    document.getElementById('nuevoNombre').value = '';
+    await cargarProductos();
   } catch(e) {
     showToast('Error de conexión');
   }
@@ -832,13 +878,9 @@ function confirmarBorrarProducto(codigo, nombre) {
 
 async function borrarProducto(codigo) {
   try {
-    const r = await api({ accion:'borrarProducto', codigo });
-    if (r.ok) {
-      showToast('🗑 Producto eliminado');
-      await cargarProductos();
-    } else {
-      showToast('❌ ' + r.error);
-    }
+    await sheetDelete(SHEET_PROD, 'CODIGO', codigo);
+    showToast('🗑 Producto eliminado');
+    await cargarProductos();
   } catch(e) {
     showToast('Error de conexión');
   }
@@ -930,24 +972,27 @@ function selPeriodo(btn) {
 
 async function exportarStock() {
   showToast('Preparando Excel...');
-  const r = await api({ accion:'listar' });
-  if (!r.ok) { showToast('Error'); return; }
-  let csv = '\uFEFF' + 'Código,Nombre,Stock actual,Stock mínimo,Estado\n';
-  r.productos.forEach(p => {
-    csv += `${p.codigo},"${p.nombre}",${p.stock},${p.minimo},${p.stock<=p.minimo&&p.minimo>0?'STOCK BAJO':'OK'}\n`;
-  });
-  descargarCSV(csv, 'stock_' + hoyStr() + '.csv');
+  try {
+    const datos = await sheetGet(SHEET_PROD);
+    let csv = '\uFEFF' + 'Código,Nombre,Stock actual,Stock mínimo,Estado\n';
+    datos.forEach(p => {
+      const bajo = parseFloat(p.STOCK) <= parseFloat(p.MINIMO) && parseFloat(p.MINIMO) > 0;
+      csv += `${p.CODIGO},"${p.NOMBRE}",${p.STOCK},${p.MINIMO},${bajo?'STOCK BAJO':'OK'}\n`;
+    });
+    descargarCSV(csv, 'stock_' + hoyStr() + '.csv');
+  } catch(e) { showToast('Error'); }
 }
 
 async function exportarHistorial() {
   showToast('Preparando Excel...');
-  // Para exportar historial real necesitamos una función adicional en el script
-  // Por ahora exportamos lo que tenemos en memoria
-  let csv = '\uFEFF' + 'Fecha,Hora,Producto,Tipo,Cantidad,Stock resultante\n';
-  historial.forEach(h => {
-    csv += `${h.fecha||''},${h.hora||''},"${h.nombre}",${h.tipo},${h.cantidad},${h.stock_final||''}\n`;
-  });
-  descargarCSV(csv, 'historial_' + hoyStr() + '.csv');
+  try {
+    const datos = await sheetGet(SHEET_MOV);
+    let csv = '\uFEFF' + 'Fecha,Hora,Producto,Tipo,Cantidad,Stock resultante\n';
+    datos.forEach(h => {
+      csv += `${h.FECHA},${h.HORA},"${h.NOMBRE}",${h.TIPO},${h.CANTIDAD},${h.STOCK_FINAL}\n`;
+    });
+    descargarCSV(csv, 'historial_' + hoyStr() + '.csv');
+  } catch(e) { showToast('Error'); }
 }
 
 function descargarCSV(contenido, nombre) {
@@ -991,23 +1036,34 @@ async function borrarMovimiento(fila) {
 // ── AJUSTES ──
 async function borrarHistorial() {
   try {
-    const r = await api({ accion:'borrarHistorial' });
-    if (r.ok) { historial=[]; renderHistorial([]); showToast('🗑 Historial borrado'); }
-    else showToast('❌ ' + r.error);
-  } catch(e) { showToast('Error'); }
+    // Borrar todas las filas de MOVIMIENTOS excepto cabecera
+    const datos = await sheetGet(SHEET_MOV);
+    for (const h of datos) {
+      await sheetDelete(SHEET_MOV, 'FECHA', h.FECHA);
+    }
+    historial = [];
+    renderHistorial([]);
+    showToast('🗑 Historial borrado');
+  } catch(e) {
+    showToast('Error');
+  }
 }
 
 async function resetearTodo() {
   try {
-    const r = await api({ accion:'resetear' });
-    if (r.ok) {
-      productos=[]; historial=[];
-      renderStock([]); renderHistorial([]);
-      document.getElementById('totalProds').textContent = '0';
-      actualizarAlertaHeader();
-      showToast('🗑 Todo reseteado');
-    } else showToast('❌ ' + r.error);
-  } catch(e) { showToast('Error'); }
+    const prods = await sheetGet(SHEET_PROD);
+    for (const p of prods) {
+      await sheetDelete(SHEET_PROD, 'CODIGO', p.CODIGO);
+    }
+    await borrarHistorial();
+    productos = [];
+    renderStock([]);
+    document.getElementById('totalProds').textContent = '0';
+    actualizarAlertaHeader();
+    showToast('🗑 Todo reseteado');
+  } catch(e) {
+    showToast('Error');
+  }
 }
 
 // ── ALERTAS HEADER ──
