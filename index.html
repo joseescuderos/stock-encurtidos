@@ -634,6 +634,7 @@ async function init() {
 async function cargarProductos() {
   try {
     const datos = await sheetGet(SHEET_PROD);
+    if (!datos || !datos.length) return;
     productos = datos.map(p => ({
       id:     p.ID,
       nombre: p.NOMBRE,
@@ -729,23 +730,21 @@ async function buscarManual() {
   const codigo = document.getElementById('manualCode').value.trim().toUpperCase();
   if (!codigo) return;
 
-  // Buscar primero en memoria (instantáneo)
+  // Si no hay productos cargados todavía, esperar
+  if (!productos.length) {
+    mostrarCargando('resultCard');
+    await cargarProductos();
+  }
+
+  // Buscar en memoria
   const prod = productos.find(p => p.codigo === codigo);
   if (prod) {
     mostrarResultado(prod);
     return;
   }
 
-  // Si no está en memoria recargar del servidor
-  mostrarCargando('resultCard');
-  try {
-    await cargarProductos();
-    const prod2 = productos.find(p => p.codigo === codigo);
-    if (prod2) mostrarResultado(prod2);
-    else { showToast('Producto no encontrado'); ocultarResultado(); }
-  } catch(e) {
-    showToast('Error de conexión');
-  }
+  showToast('Producto no encontrado');
+  ocultarResultado();
 }
 
 function mostrarResultado(p) {
