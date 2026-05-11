@@ -602,20 +602,21 @@ function api(params) {
     const url = API + '?' + new URLSearchParams(params) + '&callback=' + cbName;
     const script = document.createElement('script');
     const timer = setTimeout(() => {
+      try { document.body.removeChild(script); } catch(e) {}
       delete window[cbName];
-      document.body.removeChild(script);
-      reject(new Error('Timeout'));
-    }, 10000);
+      reject(new Error('Timeout — comprueba la conexión'));
+    }, 30000);
     window[cbName] = (data) => {
       clearTimeout(timer);
       delete window[cbName];
-      document.body.removeChild(script);
+      try { document.body.removeChild(script); } catch(e) {}
       resolve(data);
     };
     script.src = url;
     script.onerror = () => {
       clearTimeout(timer);
       delete window[cbName];
+      try { document.body.removeChild(script); } catch(e) {}
       reject(new Error('Error de red'));
     };
     document.body.appendChild(script);
