@@ -205,6 +205,13 @@
     background: rgba(255,255,255,0.85);
     box-shadow: 0 2px 10px rgba(0,0,0,0.12);
   }
+  .viewer .icon-btn.slideshow-btn {
+    left: auto;
+    right: 12px;
+  }
+  .viewer .icon-btn.slideshow-btn.playing {
+    color: var(--wine);
+  }
   .viewer .page-indicator {
     position: absolute;
     bottom: 18px;
@@ -323,9 +330,10 @@
     <div class="screen" id="screen-viewer">
       <div class="viewer" id="viewer">
         <div class="viewer-image" id="viewer-image"></div>
-        <div class="nav-zone left" onclick="changePhoto(-1)" title="Foto anterior"></div>
-        <div class="nav-zone right" onclick="changePhoto(1)" title="Foto siguiente"></div>
-        <button class="icon-btn" onclick="showScreen('screen-photos')">←</button>
+        <div class="nav-zone left" onclick="stopSlideshow(); changePhoto(-1)" title="Foto anterior"></div>
+        <div class="nav-zone right" onclick="stopSlideshow(); changePhoto(1)" title="Foto siguiente"></div>
+        <button class="icon-btn" onclick="stopSlideshow(); showScreen('screen-photos')">←</button>
+        <button class="icon-btn slideshow-btn" id="slideshow-btn" onclick="toggleSlideshow()" title="Presentación automática">▶</button>
         <div class="swipe-hint">‹ desliza para navegar · pellizca para hacer zoom ›</div>
         <div class="page-indicator" id="viewer-indicator">1 / 12</div>
       </div>
@@ -427,6 +435,33 @@
     const photos = photosByFolder[currentFolder];
     currentPhoto = (currentPhoto + delta + photos.length) % photos.length;
     updateViewer();
+  }
+
+  // Presentación automática: pensada para enseñar reportajes a clientes sin tocar la
+  // pantalla — un botón la inicia o la detiene cuando el fotógrafo lo necesite.
+  let slideshowTimer = null;
+
+  function toggleSlideshow() {
+    const btn = document.getElementById('slideshow-btn');
+    if (slideshowTimer) {
+      clearInterval(slideshowTimer);
+      slideshowTimer = null;
+      btn.textContent = '▶';
+      btn.classList.remove('playing');
+    } else {
+      btn.textContent = '⏸';
+      btn.classList.add('playing');
+      slideshowTimer = setInterval(() => changePhoto(1), 4000);
+    }
+  }
+
+  function stopSlideshow() {
+    if (!slideshowTimer) return;
+    clearInterval(slideshowTimer);
+    slideshowTimer = null;
+    const btn = document.getElementById('slideshow-btn');
+    btn.textContent = '▶';
+    btn.classList.remove('playing');
   }
 
   renderFolders();
