@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Photo SD Browser — Vista previa de diseño</title>
+<style>
+  :root {
+    --bg: #000000;
+    --surface: #121212;
+    --surface-variant: #1e1e1e;
+    --accent: #ffb300;
+    --on-primary: #f5f5f5;
+    --on-secondary: #a0a0a0;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+    background: #2a2a2a;
+    color: var(--on-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px;
+    gap: 20px;
+  }
+
+  h1 { font-size: 20px; font-weight: 600; }
+  .subtitle { color: #999; font-size: 14px; text-align: center; max-width: 520px; }
+
+  /* Tablet frame */
+  .device {
+    width: 420px;
+    max-width: 100%;
+    height: 760px;
+    background: var(--bg);
+    border-radius: 28px;
+    border: 8px solid #333;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    background: var(--bg);
+  }
+  .screen.active { display: flex; }
+
+  /* --- Top bar --- */
+  .topbar {
+    height: 56px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+    background: var(--bg);
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .topbar .title {
+    font-size: 17px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--on-primary);
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .icon-btn:hover { background: rgba(255,255,255,0.08); }
+  .topbar .spacer { flex: 1; }
+
+  /* --- Folder grid (2 columns) --- */
+  .folder-grid {
+    flex: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding: 16px;
+  }
+  .folder-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .15s ease;
+  }
+  .folder-card:hover { transform: scale(1.02); }
+  .cover {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background-size: cover;
+    background-position: center;
+  }
+  .folder-meta { padding: 12px; }
+  .folder-name {
+    font-size: 15px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .folder-count {
+    font-size: 12px;
+    color: var(--on-secondary);
+    margin-top: 4px;
+  }
+
+  /* --- Photo grid (3 columns, tight) --- */
+  .photo-grid {
+    flex: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    padding: 2px;
+  }
+  .photo-thumb {
+    aspect-ratio: 1 / 1;
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    position: relative;
+  }
+  .raw-badge {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background: rgba(0,0,0,0.6);
+    color: var(--accent);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: .5px;
+    padding: 2px 5px;
+    border-radius: 4px;
+  }
+
+  /* --- Full screen viewer --- */
+  .viewer {
+    background: #000;
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+  }
+  .viewer-image {
+    position: absolute;
+    inset: 0;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: background-image .2s ease;
+  }
+  .viewer .icon-btn {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(0,0,0,0.35);
+  }
+  .viewer .page-indicator {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 13px;
+    color: #fff;
+    background: rgba(0,0,0,0.35);
+    padding: 6px 14px;
+    border-radius: 14px;
+  }
+  .viewer .swipe-hint {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+    white-space: nowrap;
+  }
+  .nav-zone {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 30%;
+    cursor: pointer;
+  }
+  .nav-zone.left { left: 0; }
+  .nav-zone.right { right: 0; }
+
+  /* --- Empty / permission states --- */
+  .center-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px;
+    gap: 14px;
+  }
+  .center-state .glyph {
+    font-size: 48px;
+    color: var(--accent);
+  }
+  .center-state h2 { font-size: 18px; font-weight: 600; }
+  .center-state p { font-size: 13px; color: var(--on-secondary); max-width: 280px; line-height: 1.5; }
+  .btn {
+    margin-top: 6px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn:hover { filter: brightness(1.08); }
+
+  /* --- Controls below the device to switch screens --- */
+  .controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .controls button {
+    background: var(--surface-variant);
+    color: var(--on-primary);
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .controls button.current { border-color: var(--accent); color: var(--accent); }
+  .controls button:hover { background: #2a2a2a; }
+  .hint { font-size: 12px; color: #888; text-align: center; }
+</style>
+</head>
+<body>
+
+  <h1>Photo SD Browser — vista previa de diseño</h1>
+  <p class="subtitle">
+    Maqueta interactiva en HTML/CSS para previsualizar el flujo y el tema oscuro. No es la app real
+    (esa está en Kotlin + Jetpack Compose dentro de <code>PhotoSDBrowser/</code>); esto solo recrea
+    la apariencia para que puedas valorar el diseño antes de compilar.
+  </p>
+
+  <div class="device">
+
+    <!-- Screen 1: Folder list -->
+    <div class="screen active" id="screen-folders">
+      <div class="topbar">
+        <span class="title">Photo Folders</span>
+        <span class="spacer"></span>
+        <button class="icon-btn" title="Elegir carpeta de la tarjeta SD">📁</button>
+      </div>
+      <div class="folder-grid" id="folder-grid"></div>
+    </div>
+
+    <!-- Screen 2: Photo grid -->
+    <div class="screen" id="screen-photos">
+      <div class="topbar">
+        <button class="icon-btn" onclick="showScreen('screen-folders')">←</button>
+        <span class="title" id="photo-grid-title">Carpeta</span>
+      </div>
+      <div class="photo-grid" id="photo-grid"></div>
+    </div>
+
+    <!-- Screen 3: Full screen viewer -->
+    <div class="screen" id="screen-viewer">
+      <div class="viewer" id="viewer">
+        <div class="viewer-image" id="viewer-image"></div>
+        <div class="nav-zone left" onclick="changePhoto(-1)" title="Foto anterior"></div>
+        <div class="nav-zone right" onclick="changePhoto(1)" title="Foto siguiente"></div>
+        <button class="icon-btn" onclick="showScreen('screen-photos')">←</button>
+        <div class="swipe-hint">‹ desliza para navegar · pellizca para hacer zoom ›</div>
+        <div class="page-indicator" id="viewer-indicator">1 / 12</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="controls">
+    <button onclick="showScreen('screen-folders')" data-screen="screen-folders">1 · Carpetas</button>
+    <button onclick="openFolder(0)" data-screen="screen-photos">2 · Galería de fotos</button>
+    <button onclick="openViewer(0)" data-screen="screen-viewer">3 · Visor a pantalla completa</button>
+  </div>
+  <p class="hint">Pulsa una tarjeta de carpeta o una miniatura, o usa los botones de arriba, para navegar entre las 3 pantallas.</p>
+
+<script>
+  // Paleta de gradientes para simular fotos sin depender de imágenes externas
+  const palettes = [
+    ['#3a4a6b', '#1c2433'], ['#5b3a52', '#2a1b27'], ['#3a5b4a', '#1b2a22'],
+    ['#6b5a3a', '#332a1b'], ['#3a546b', '#1b2433'], ['#5b3a3a', '#2a1b1b'],
+    ['#4a3a6b', '#221b33'], ['#3a6b5e', '#1b332c'], ['#6b3a4f', '#331b25'],
+    ['#5a6b3a', '#2c331b'], ['#3a416b', '#1b1f33'], ['#6b4a3a', '#33251b']
+  ];
+  const cover = i => `linear-gradient(135deg, ${palettes[i % palettes.length][0]}, ${palettes[i % palettes.length][1]})`;
+
+  const folders = [
+    { name: 'Boda — Marta & Iván', count: 248 },
+    { name: 'Sesión retrato estudio', count: 56 },
+    { name: 'Paisajes — Pirineos', count: 134 },
+    { name: 'Producto — Cliente Nórdic', count: 89 },
+    { name: 'Evento corporativo', count: 312 },
+    { name: 'Naturaleza — RAW', count: 41 },
+  ];
+
+  // Genera fotos para cada carpeta (algunas marcadas como RAW)
+  const photosByFolder = folders.map((f, fi) =>
+    Array.from({ length: f.count > 60 ? 12 : f.count }, (_, i) => ({
+      idx: i,
+      isRaw: fi === 5 || (fi === 0 && i % 7 === 0),
+      seed: fi * 17 + i
+    }))
+  );
+
+  let currentFolder = 0;
+  let currentPhoto = 0;
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.controls button').forEach(b =>
+      b.classList.toggle('current', b.dataset.screen === id));
+  }
+
+  function renderFolders() {
+    const grid = document.getElementById('folder-grid');
+    grid.innerHTML = folders.map((f, i) => `
+      <div class="folder-card" onclick="openFolder(${i})">
+        <div class="cover" style="background-image:${cover(i)}"></div>
+        <div class="folder-meta">
+          <div class="folder-name">${f.name}</div>
+          <div class="folder-count">${f.count} fotos</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function openFolder(i) {
+    currentFolder = i;
+    document.getElementById('photo-grid-title').textContent = folders[i].name;
+    const grid = document.getElementById('photo-grid');
+    grid.innerHTML = photosByFolder[i].map((p, idx) => `
+      <div class="photo-thumb" style="background-image:${cover(p.seed)}" onclick="openViewer(${idx})">
+        ${p.isRaw ? '<span class="raw-badge">RAW</span>' : ''}
+      </div>
+    `).join('');
+    showScreen('screen-photos');
+  }
+
+  function openViewer(idx) {
+    currentPhoto = idx;
+    updateViewer();
+    showScreen('screen-viewer');
+  }
+
+  function updateViewer() {
+    const photos = photosByFolder[currentFolder];
+    const p = photos[currentPhoto];
+    document.getElementById('viewer-image').style.backgroundImage = cover(p.seed);
+    document.getElementById('viewer-indicator').textContent = `${currentPhoto + 1} / ${photos.length}`;
+  }
+
+  function changePhoto(delta) {
+    const photos = photosByFolder[currentFolder];
+    currentPhoto = (currentPhoto + delta + photos.length) % photos.length;
+    updateViewer();
+  }
+
+  renderFolders();
+</script>
+</body>
+</html>
