@@ -53,7 +53,7 @@ fun PhotoGridScreen(
                 title = { Text(folderName, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Atrás")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -70,7 +70,7 @@ fun PhotoGridScreen(
         ) {
             when (val state = uiState) {
                 is PhotoGridUiState.Loading -> LoadingContent()
-                is PhotoGridUiState.Empty -> MessageContent("No photos in this folder.")
+                is PhotoGridUiState.Empty -> MessageContent("No hay fotos en esta carpeta.")
                 is PhotoGridUiState.Error -> MessageContent(state.message)
                 is PhotoGridUiState.Success -> PhotoGrid(
                     photos = state.photos,

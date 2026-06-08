@@ -5,11 +5,12 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
@@ -25,16 +26,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.photosdbrowser.app.ui.components.ZoomableImage
 
 /**
- * Black, chrome-free full-screen viewer. Swipe left/right to move between photos, pinch to zoom
- * and pan within a photo — pager swipes are disabled while the current photo is zoomed in so the
- * two gestures don't fight each other.
+ * Chrome-free full-screen viewer on the brand's light background. Swipe left/right to move
+ * between photos, pinch to zoom and pan within a photo — pager swipes are disabled while the
+ * current photo is zoomed in so the two gestures don't fight each other.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -50,16 +51,16 @@ fun PhotoViewerScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         when {
             uiState.isLoading -> CircularProgressIndicator(
-                color = Color.White,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.align(Alignment.Center)
             )
             uiState.photos.isEmpty() -> Text(
-                text = "No photos to show",
-                color = Color.White,
+                text = "No hay fotos para mostrar",
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.align(Alignment.Center)
             )
             else -> PhotoPager(uiState = uiState)
@@ -71,8 +72,14 @@ fun PhotoViewerScreen(
                 .align(Alignment.TopStart)
                 .statusBarsPadding()
                 .padding(8.dp)
+                .clip(RoundedCornerShape(50))
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
         ) {
-            Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back", tint = Color.White)
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                contentDescription = "Atrás",
+                tint = MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 }
@@ -106,12 +113,15 @@ private fun PhotoPager(uiState: PhotoViewerUiState) {
 
         Text(
             text = "${pagerState.currentPage + 1} / ${uiState.photos.size}",
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
                 .padding(16.dp)
+                .clip(RoundedCornerShape(50))
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
+                .padding(horizontal = 14.dp, vertical = 6.dp)
         )
     }
 }

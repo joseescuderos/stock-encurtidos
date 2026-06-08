@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Photo SD Browser — Vista previa de diseño</title>
+<title>joseescuderos — Vista previa de diseño</title>
 <style>
   :root {
-    --bg: #000000;
-    --surface: #121212;
-    --surface-variant: #1e1e1e;
-    --accent: #ffb300;
-    --on-primary: #f5f5f5;
-    --on-secondary: #a0a0a0;
+    --bg: #ffffff;
+    --surface: #f7f5f3;
+    --surface-variant: #ede8e4;
+    --wine: #9c4259;
+    --gold: #b08d57;
+    --ink: #2b2b2b;
+    --ink2: #6b6b6b;
     --radius: 12px;
   }
 
@@ -19,8 +20,8 @@
 
   body {
     font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-    background: #2a2a2a;
-    color: var(--on-primary);
+    background: #e9e6e2;
+    color: var(--ink);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -29,8 +30,8 @@
     gap: 20px;
   }
 
-  h1 { font-size: 20px; font-weight: 600; }
-  .subtitle { color: #999; font-size: 14px; text-align: center; max-width: 520px; }
+  h1 { font-size: 20px; font-weight: 600; color: var(--ink); }
+  .subtitle { color: #777; font-size: 14px; text-align: center; max-width: 540px; }
 
   /* Tablet frame */
   .device {
@@ -42,7 +43,7 @@
     border: 8px solid #333;
     overflow: hidden;
     position: relative;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
   }
 
   .screen {
@@ -63,11 +64,12 @@
     gap: 12px;
     padding: 0 12px;
     background: var(--bg);
-    border-bottom: 1px solid #1a1a1a;
+    border-bottom: 1px solid var(--surface-variant);
   }
   .topbar .title {
     font-size: 17px;
     font-weight: 500;
+    color: var(--ink);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -78,15 +80,28 @@
     border-radius: 50%;
     border: none;
     background: transparent;
-    color: var(--on-primary);
+    color: var(--ink);
     font-size: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
   }
-  .icon-btn:hover { background: rgba(255,255,255,0.08); }
+  .icon-btn:hover { background: rgba(0,0,0,0.06); }
   .topbar .spacer { flex: 1; }
+
+  /* --- Brand header --- */
+  .brand-header {
+    padding: 22px 36px 10px;
+    display: flex;
+    justify-content: center;
+  }
+  .brand-header img {
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    display: block;
+  }
 
   /* --- Folder grid (2 columns) --- */
   .folder-grid {
@@ -99,12 +114,13 @@
   }
   .folder-card {
     background: var(--surface);
+    border: 1px solid var(--surface-variant);
     border-radius: var(--radius);
     overflow: hidden;
     cursor: pointer;
-    transition: transform .15s ease;
+    transition: transform .15s ease, box-shadow .15s ease;
   }
-  .folder-card:hover { transform: scale(1.02); }
+  .folder-card:hover { transform: scale(1.02); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
   .cover {
     width: 100%;
     aspect-ratio: 1 / 1;
@@ -115,13 +131,14 @@
   .folder-name {
     font-size: 15px;
     font-weight: 500;
+    color: var(--ink);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .folder-count {
     font-size: 12px;
-    color: var(--on-secondary);
+    color: var(--ink2);
     margin-top: 4px;
   }
 
@@ -141,14 +158,26 @@
     cursor: pointer;
     position: relative;
   }
+  .order-badge {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    background: rgba(255,255,255,0.85);
+    color: var(--ink);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: .5px;
+    padding: 2px 5px;
+    border-radius: 4px;
+  }
   .raw-badge {
     position: absolute;
     bottom: 4px;
     right: 4px;
-    background: rgba(0,0,0,0.6);
-    color: var(--accent);
+    background: rgba(255,255,255,0.85);
+    color: var(--wine);
     font-size: 9px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: .5px;
     padding: 2px 5px;
     border-radius: 4px;
@@ -156,7 +185,7 @@
 
   /* --- Full screen viewer --- */
   .viewer {
-    background: #000;
+    background: var(--bg);
     position: relative;
     flex: 1;
     overflow: hidden;
@@ -173,7 +202,8 @@
     position: absolute;
     top: 12px;
     left: 12px;
-    background: rgba(0,0,0,0.35);
+    background: rgba(255,255,255,0.85);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
   }
   .viewer .page-indicator {
     position: absolute;
@@ -181,8 +211,9 @@
     left: 50%;
     transform: translateX(-50%);
     font-size: 13px;
-    color: #fff;
-    background: rgba(0,0,0,0.35);
+    color: var(--ink);
+    background: rgba(255,255,255,0.85);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
     padding: 6px 14px;
     border-radius: 14px;
   }
@@ -192,7 +223,7 @@
     left: 50%;
     transform: translateX(-50%);
     font-size: 12px;
-    color: rgba(255,255,255,0.55);
+    color: var(--ink2);
     white-space: nowrap;
   }
   .nav-zone {
@@ -217,15 +248,15 @@
     gap: 14px;
   }
   .center-state .glyph {
-    font-size: 48px;
-    color: var(--accent);
+    font-size: 44px;
+    color: var(--wine);
   }
-  .center-state h2 { font-size: 18px; font-weight: 600; }
-  .center-state p { font-size: 13px; color: var(--on-secondary); max-width: 280px; line-height: 1.5; }
+  .center-state h2 { font-size: 18px; font-weight: 600; color: var(--ink); }
+  .center-state p { font-size: 13px; color: var(--ink2); max-width: 280px; line-height: 1.5; }
   .btn {
     margin-top: 6px;
-    background: var(--accent);
-    color: #000;
+    background: var(--wine);
+    color: #fff;
     border: none;
     border-radius: 20px;
     padding: 10px 24px;
@@ -243,26 +274,26 @@
     justify-content: center;
   }
   .controls button {
-    background: var(--surface-variant);
-    color: var(--on-primary);
-    border: 1px solid #333;
+    background: #fff;
+    color: var(--ink);
+    border: 1px solid var(--surface-variant);
     border-radius: 8px;
     padding: 8px 14px;
     font-size: 13px;
     cursor: pointer;
   }
-  .controls button.current { border-color: var(--accent); color: var(--accent); }
-  .controls button:hover { background: #2a2a2a; }
+  .controls button.current { border-color: var(--wine); color: var(--wine); }
+  .controls button:hover { background: var(--surface); }
   .hint { font-size: 12px; color: #888; text-align: center; }
 </style>
 </head>
 <body>
 
-  <h1>Photo SD Browser — vista previa de diseño</h1>
+  <h1>joseescuderos — vista previa de diseño</h1>
   <p class="subtitle">
-    Maqueta interactiva en HTML/CSS para previsualizar el flujo y el tema oscuro. No es la app real
-    (esa está en Kotlin + Jetpack Compose dentro de <code>PhotoSDBrowser/</code>); esto solo recrea
-    la apariencia para que puedas valorar el diseño antes de compilar.
+    Maqueta interactiva en HTML/CSS con el tema claro y la marca "joseescuderos · Pequeños momentos,
+    grandes recuerdos". No es la app real (esa está en Kotlin + Jetpack Compose dentro de
+    <code>PhotoSDBrowser/</code>); esto solo recrea la apariencia para revisar el diseño antes de compilar.
   </p>
 
   <div class="device">
@@ -270,9 +301,11 @@
     <!-- Screen 1: Folder list -->
     <div class="screen active" id="screen-folders">
       <div class="topbar">
-        <span class="title">Photo Folders</span>
         <span class="spacer"></span>
         <button class="icon-btn" title="Elegir carpeta de la tarjeta SD">📁</button>
+      </div>
+      <div class="brand-header">
+        <img src="logo-preview.png" alt="joseescuderos — Pequeños momentos, grandes recuerdos" />
       </div>
       <div class="folder-grid" id="folder-grid"></div>
     </div>
@@ -301,8 +334,8 @@
   </div>
 
   <div class="controls">
-    <button onclick="showScreen('screen-folders')" data-screen="screen-folders">1 · Carpetas</button>
-    <button onclick="openFolder(0)" data-screen="screen-photos">2 · Galería de fotos</button>
+    <button onclick="showScreen('screen-folders')" data-screen="screen-folders">1 · Pantalla principal</button>
+    <button onclick="openFolder(0)" data-screen="screen-photos">2 · Galería (orden de archivo)</button>
     <button onclick="openViewer(0)" data-screen="screen-viewer">3 · Visor a pantalla completa</button>
   </div>
   <p class="hint">Pulsa una tarjeta de carpeta o una miniatura, o usa los botones de arriba, para navegar entre las 3 pantallas.</p>
@@ -310,10 +343,10 @@
 <script>
   // Paleta de gradientes para simular fotos sin depender de imágenes externas
   const palettes = [
-    ['#3a4a6b', '#1c2433'], ['#5b3a52', '#2a1b27'], ['#3a5b4a', '#1b2a22'],
-    ['#6b5a3a', '#332a1b'], ['#3a546b', '#1b2433'], ['#5b3a3a', '#2a1b1b'],
-    ['#4a3a6b', '#221b33'], ['#3a6b5e', '#1b332c'], ['#6b3a4f', '#331b25'],
-    ['#5a6b3a', '#2c331b'], ['#3a416b', '#1b1f33'], ['#6b4a3a', '#33251b']
+    ['#cdb9a8', '#9c4259'], ['#e3d4c2', '#b08d57'], ['#cfc2b3', '#8a6a4f'],
+    ['#ddd0bd', '#a85a6a'], ['#e6dccf', '#b3925f'], ['#d6c6b6', '#9c5b53'],
+    ['#e0d3c4', '#a4724f'], ['#d3c2ae', '#8f5a52'], ['#ecdfd0', '#bb9a6a'],
+    ['#d8c9b9', '#a16456'], ['#e8dccd', '#ad8861'], ['#d1c0ad', '#955a4d']
   ];
   const cover = i => `linear-gradient(135deg, ${palettes[i % palettes.length][0]}, ${palettes[i % palettes.length][1]})`;
 
@@ -326,10 +359,16 @@
     { name: 'Naturaleza — RAW', count: 41 },
   ];
 
-  // Genera fotos para cada carpeta (algunas marcadas como RAW)
+  // Las fotos se generan ya ordenadas por nombre de archivo, igual que MediaScanner en la app real
+  function fileName(folderIdx, photoIdx) {
+    const prefix = ['IMG', 'DSC', 'RAW', 'P', 'IMG', 'CAM'][folderIdx % 6];
+    return `${prefix}_${String(1000 + photoIdx).padStart(4, '0')}.${folderIdx === 5 ? 'NEF' : 'JPG'}`;
+  }
+
   const photosByFolder = folders.map((f, fi) =>
     Array.from({ length: f.count > 60 ? 12 : f.count }, (_, i) => ({
       idx: i,
+      name: fileName(fi, i),
       isRaw: fi === 5 || (fi === 0 && i % 7 === 0),
       seed: fi * 17 + i
     }))
@@ -364,6 +403,7 @@
     const grid = document.getElementById('photo-grid');
     grid.innerHTML = photosByFolder[i].map((p, idx) => `
       <div class="photo-thumb" style="background-image:${cover(p.seed)}" onclick="openViewer(${idx})">
+        <span class="order-badge">${p.name}</span>
         ${p.isRaw ? '<span class="raw-badge">RAW</span>' : ''}
       </div>
     `).join('');
@@ -380,7 +420,7 @@
     const photos = photosByFolder[currentFolder];
     const p = photos[currentPhoto];
     document.getElementById('viewer-image').style.backgroundImage = cover(p.seed);
-    document.getElementById('viewer-indicator').textContent = `${currentPhoto + 1} / ${photos.length}`;
+    document.getElementById('viewer-indicator').textContent = `${currentPhoto + 1} / ${photos.length} · ${p.name}`;
   }
 
   function changePhoto(delta) {

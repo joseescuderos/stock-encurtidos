@@ -2,9 +2,12 @@ package com.photosdbrowser.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val DarkBackground = Color(0xFF000000)
-val DarkSurface = Color(0xFF121212)
-val DarkSurfaceVariant = Color(0xFF1E1E1E)
-val AccentAmber = Color(0xFFFFB300)
-val OnDarkPrimary = Color(0xFFF5F5F5)
-val OnDarkSecondary = Color(0xFFA0A0A0)
+// Paleta inspirada en la identidad de marca "joseescuderos" (granate -> dorado/oliva)
+val BrandWine = Color(0xFF9C4259)
+val BrandGold = Color(0xFFB08D57)
+
+val LightBackground = Color(0xFFFFFFFF)
+val LightSurface = Color(0xFFF7F5F3)
+val LightSurfaceVariant = Color(0xFFEDE8E4)
+val OnLightPrimary = Color(0xFF2B2B2B)
+val OnLightSecondary = Color(0xFF6B6B6B)

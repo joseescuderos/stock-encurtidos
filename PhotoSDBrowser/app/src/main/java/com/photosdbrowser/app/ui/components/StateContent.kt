@@ -62,21 +62,21 @@ fun StorageAccessRequest(
             modifier = Modifier.width(64.dp)
         )
         Text(
-            text = "Browse photos on your SD card",
+            text = "Explora las fotos de tu tarjeta SD",
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 16.dp)
         )
         Text(
-            text = "Choose the folder where your memory card or photo storage is mounted. " +
-                "The app only reads images from that location.",
+            text = "Elige la carpeta donde está montada tu tarjeta de memoria o almacenamiento " +
+                "fotográfico. La app solo lee imágenes de esa ubicación.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
         )
         Button(onClick = onSelectFolderClick) {
-            Text("Select folder")
+            Text("Elegir carpeta")
         }
     }
 }

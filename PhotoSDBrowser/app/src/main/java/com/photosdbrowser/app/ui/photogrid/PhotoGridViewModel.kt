@@ -35,7 +35,7 @@ class PhotoGridViewModel(application: Application) : AndroidViewModel(applicatio
                 }
                 .onFailure { error ->
                     _uiState.value = PhotoGridUiState.Error(
-                        error.message ?: "Couldn't read photos in this folder"
+                        error.message ?: "No se han podido leer las fotos de esta carpeta"
                     )
                 }
         }

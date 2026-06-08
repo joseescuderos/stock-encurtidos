@@ -66,7 +66,7 @@ class FolderListViewModel(application: Application) : AndroidViewModel(applicati
                 }
                 .onFailure { error ->
                     _uiState.value = FolderListUiState.Error(
-                        error.message ?: "Couldn't read the selected folder"
+                        error.message ?: "No se ha podido leer la carpeta seleccionada"
                     )
                 }
         }

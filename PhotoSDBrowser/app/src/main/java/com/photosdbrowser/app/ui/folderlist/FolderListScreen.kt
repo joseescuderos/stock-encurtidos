@@ -2,6 +2,7 @@ package com.photosdbrowser.app.ui.folderlist
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -31,11 +33,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.photosdbrowser.app.R
 import com.photosdbrowser.app.data.model.FolderInfo
 import com.photosdbrowser.app.ui.components.LoadingContent
 import com.photosdbrowser.app.ui.components.MessageContent
@@ -56,10 +60,14 @@ fun FolderListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Photo Folders") },
+                title = {},
                 actions = {
                     IconButton(onClick = { folderPicker.launch(null) }) {
-                        Icon(Icons.Outlined.FolderOpen, contentDescription = "Choose SD card folder")
+                        Icon(
+                            imageVector = Icons.Outlined.FolderOpen,
+                            contentDescription = "Elegir carpeta de la tarjeta SD",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -69,25 +77,42 @@ fun FolderListScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            when (val state = uiState) {
-                is FolderListUiState.NoFolderSelected -> StorageAccessRequest(
-                    onSelectFolderClick = { folderPicker.launch(null) }
-                )
-                is FolderListUiState.Loading -> LoadingContent()
-                is FolderListUiState.Empty -> MessageContent("No photo folders found in this location.")
-                is FolderListUiState.Error -> MessageContent(state.message)
-                is FolderListUiState.Success -> FolderGrid(
-                    folders = state.folders,
-                    onFolderClick = onFolderClick
-                )
+            BrandHeader()
+
+            Box(modifier = Modifier.weight(1f)) {
+                when (val state = uiState) {
+                    is FolderListUiState.NoFolderSelected -> StorageAccessRequest(
+                        onSelectFolderClick = { folderPicker.launch(null) }
+                    )
+                    is FolderListUiState.Loading -> LoadingContent()
+                    is FolderListUiState.Empty -> MessageContent("No se han encontrado carpetas con fotos en esta ubicación.")
+                    is FolderListUiState.Error -> MessageContent(state.message)
+                    is FolderListUiState.Success -> FolderGrid(
+                        folders = state.folders,
+                        onFolderClick = onFolderClick
+                    )
+                }
             }
         }
     }
+}
+
+/** Wordmark + lema de la marca, mostrados en la cabecera de la pantalla principal. */
+@Composable
+private fun BrandHeader() {
+    Image(
+        painter = painterResource(id = R.drawable.logo),
+        contentDescription = "joseescuderos — Pequeños momentos, grandes recuerdos",
+        contentScale = ContentScale.Fit,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 40.dp, vertical = 20.dp)
+    )
 }
 
 @Composable
@@ -130,7 +155,7 @@ private fun FolderCard(folder: FolderInfo, onClick: () -> Unit) {
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "${folder.photoCount} photo${if (folder.photoCount == 1) "" else "s"}",
+                    text = "${folder.photoCount} foto${if (folder.photoCount == 1) "" else "s"}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.height(20.dp)
