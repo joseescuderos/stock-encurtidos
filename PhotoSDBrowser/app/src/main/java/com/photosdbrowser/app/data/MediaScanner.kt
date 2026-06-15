@@ -14,6 +14,9 @@ private val IMAGE_EXTENSIONS = setOf(
 )
 private val RAW_EXTENSIONS = setOf("cr2", "arw", "nef")
 
+/** How many levels of subfolders to search below the chosen root for photo folders. */
+private const val MAX_SCAN_DEPTH = 4
+
 private fun String?.extension(): String =
     this.orEmpty().substringAfterLast('.', "").lowercase()
 
@@ -26,23 +29,33 @@ private fun DocumentFile.isImageFile(): Boolean =
  */
 class MediaScanner(private val context: Context) {
 
+    /**
+     * Walks the tree below [rootUri] up to [MAX_SCAN_DEPTH] levels deep and returns every folder
+     * (at any depth, including the root itself) that directly contains photos. This covers SD
+     * card layouts where photos sit straight inside the chosen folder as well as layouts with
+     * one or more levels of subfolders (e.g. DCIM/100CANON).
+     */
     suspend fun scanFolders(rootUri: Uri): List<FolderInfo> = withContext(Dispatchers.IO) {
         val root = DocumentFile.fromTreeUri(context, rootUri) ?: return@withContext emptyList()
-        root.listFiles()
-            .asSequence()
-            .filter { it.isDirectory }
-            .map { folder ->
-                val photos = folder.listFiles().filter { it.isImageFile() }
-                FolderInfo(
-                    uri = folder.uri,
-                    name = folder.name.orEmpty(),
-                    coverUri = photos.firstOrNull()?.uri,
-                    photoCount = photos.size
-                )
-            }
-            .filter { it.photoCount > 0 }
-            .sortedBy { it.name.lowercase() }
-            .toList()
+        val folders = mutableListOf<FolderInfo>()
+        collectPhotoFolders(root, depth = 0, into = folders)
+        folders.sortedBy { it.name.lowercase() }
+    }
+
+    private fun collectPhotoFolders(folder: DocumentFile, depth: Int, into: MutableList<FolderInfo>) {
+        val children = folder.listFiles()
+        val photos = children.filter { it.isImageFile() }
+        if (photos.isNotEmpty()) {
+            into += FolderInfo(
+                uri = folder.uri,
+                name = folder.name.orEmpty(),
+                coverUri = photos.first().uri,
+                photoCount = photos.size
+            )
+        }
+        if (depth < MAX_SCAN_DEPTH) {
+            children.filter { it.isDirectory }.forEach { collectPhotoFolders(it, depth + 1, into) }
+        }
     }
 
     suspend fun scanPhotos(folderUri: Uri): List<PhotoInfo> = withContext(Dispatchers.IO) {
