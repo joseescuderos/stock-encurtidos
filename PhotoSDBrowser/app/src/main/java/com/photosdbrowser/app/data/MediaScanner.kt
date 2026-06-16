@@ -37,37 +37,65 @@ class MediaScanner(private val context: Context) {
      */
     suspend fun scanFolders(rootUri: Uri): List<FolderInfo> = withContext(Dispatchers.IO) {
         val root = DocumentFile.fromTreeUri(context, rootUri) ?: return@withContext emptyList()
+        val children = root.listFiles() ?: return@withContext emptyList()
         val folders = mutableListOf<FolderInfo>()
-        collectPhotoFolders(root, depth = 0, into = folders)
+
+        // If root itself contains photos directly, add it as a folder entry
+        val rootPhotos = children.filter { it.isImageFile() }
+        if (rootPhotos.isNotEmpty()) {
+            folders += FolderInfo(
+                uri = root.uri,
+                name = root.name.orEmpty(),
+                coverUri = rootPhotos.first().uri,
+                photoCount = countPhotosRecursive(root)
+            )
+        }
+
+        // Each immediate subfolder that has photos anywhere inside it
+        children.filter { it.isDirectory }.forEach { subdir ->
+            val cover = findFirstPhoto(subdir) ?: return@forEach
+            folders += FolderInfo(
+                uri = subdir.uri,
+                name = subdir.name.orEmpty(),
+                coverUri = cover,
+                photoCount = countPhotosRecursive(subdir)
+            )
+        }
+
         folders.sortedBy { it.name.lowercase() }
     }
 
-    private fun collectPhotoFolders(folder: DocumentFile, depth: Int, into: MutableList<FolderInfo>) {
-        val children = folder.listFiles() ?: return
-        val photos = children.filter { it.isImageFile() }
-        if (photos.isNotEmpty()) {
-            into += FolderInfo(
-                uri = folder.uri,
-                name = folder.name.orEmpty(),
-                coverUri = photos.first().uri,
-                photoCount = photos.size
-            )
+    private fun findFirstPhoto(folder: DocumentFile): Uri? {
+        val children = folder.listFiles() ?: return null
+        children.find { it.isImageFile() }?.let { return it.uri }
+        children.filter { it.isDirectory }.forEach { sub ->
+            findFirstPhoto(sub)?.let { return it }
         }
-        if (depth < MAX_SCAN_DEPTH) {
-            children.filter { it.isDirectory }.forEach { collectPhotoFolders(it, depth + 1, into) }
-        }
+        return null
+    }
+
+    private fun countPhotosRecursive(folder: DocumentFile): Int {
+        val children = folder.listFiles() ?: return 0
+        return children.count { it.isImageFile() } +
+            children.filter { it.isDirectory }.sumOf { countPhotosRecursive(it) }
     }
 
     suspend fun scanPhotos(folderUri: Uri): List<PhotoInfo> = withContext(Dispatchers.IO) {
         val folder = DocumentFile.fromTreeUri(context, folderUri) ?: return@withContext emptyList()
-        (folder.listFiles() ?: emptyArray())
-            .asSequence()
-            .filter { it.isImageFile() }
-            .map { file ->
+        val photos = mutableListOf<PhotoInfo>()
+        collectPhotosRecursive(folder, photos)
+        photos.sortedBy { it.name.lowercase() }
+    }
+
+    private fun collectPhotosRecursive(folder: DocumentFile, into: MutableList<PhotoInfo>) {
+        val children = folder.listFiles() ?: return
+        children.forEach { file ->
+            if (file.isImageFile()) {
                 val name = file.name.orEmpty()
-                PhotoInfo(uri = file.uri, name = name, isRaw = name.extension() in RAW_EXTENSIONS)
+                into += PhotoInfo(uri = file.uri, name = name, isRaw = name.extension() in RAW_EXTENSIONS)
+            } else if (file.isDirectory) {
+                collectPhotosRecursive(file, into)
             }
-            .sortedBy { it.name.lowercase() }
-            .toList()
+        }
     }
 }
