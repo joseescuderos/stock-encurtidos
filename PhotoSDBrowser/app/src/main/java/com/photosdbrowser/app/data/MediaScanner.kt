@@ -43,7 +43,7 @@ class MediaScanner(private val context: Context) {
     }
 
     private fun collectPhotoFolders(folder: DocumentFile, depth: Int, into: MutableList<FolderInfo>) {
-        val children = folder.listFiles()
+        val children = folder.listFiles() ?: return
         val photos = children.filter { it.isImageFile() }
         if (photos.isNotEmpty()) {
             into += FolderInfo(
@@ -60,7 +60,7 @@ class MediaScanner(private val context: Context) {
 
     suspend fun scanPhotos(folderUri: Uri): List<PhotoInfo> = withContext(Dispatchers.IO) {
         val folder = DocumentFile.fromTreeUri(context, folderUri) ?: return@withContext emptyList()
-        folder.listFiles()
+        (folder.listFiles() ?: emptyArray())
             .asSequence()
             .filter { it.isImageFile() }
             .map { file ->
