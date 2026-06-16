@@ -111,9 +111,15 @@ fun LinksScreen(
                     LinksGrid(
                         links = state.links,
                         onLinkClick = { link ->
+                            val rawUrl = link.url.trim()
+                            val url = if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
+                                rawUrl
+                            } else {
+                                "https://$rawUrl"
+                            }
                             runCatching {
                                 context.startActivity(
-                                    Intent(Intent.ACTION_VIEW, Uri.parse(link.url))
+                                    Intent(Intent.ACTION_VIEW, Uri.parse(url))
                                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 )
                             }

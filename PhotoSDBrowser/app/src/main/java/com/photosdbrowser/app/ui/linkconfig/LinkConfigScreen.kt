@@ -217,9 +217,10 @@ private fun LinkDialog(
                     value = url,
                     onValueChange = { url = it },
                     label = { Text("URL de la galería") },
-                    placeholder = { Text("https://...") },
+                    placeholder = { Text("https://miweb.com/bodas") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                    supportingText = { Text("Incluye https:// al principio") },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
