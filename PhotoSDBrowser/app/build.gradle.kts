@@ -46,6 +46,14 @@ android {
     }
 }
 
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "kotlinx.serialization") {
+            useTarget("org.jetbrains.kotlinx:${requested.name}:${requested.version}")
+        }
+    }
+}
+
 dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
