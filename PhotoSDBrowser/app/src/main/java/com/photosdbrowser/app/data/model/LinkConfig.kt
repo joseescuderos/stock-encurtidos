@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 data class LinkConfig(
     val id: String,
     val label: String,
-    val url: String
+    val url: String,
+    val visible: Boolean = true
 )

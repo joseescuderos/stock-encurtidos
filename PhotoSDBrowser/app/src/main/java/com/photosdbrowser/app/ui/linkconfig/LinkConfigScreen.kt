@@ -28,6 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -111,7 +112,8 @@ fun LinkConfigScreen(
                         editingLink = link
                         showDialog = true
                     },
-                    onDeleteClick = { viewModel.delete(link.id) }
+                    onDeleteClick = { viewModel.delete(link.id) },
+                    onVisibleChange = { viewModel.setVisible(link.id, it) }
                 )
             }
         }
@@ -121,12 +123,12 @@ fun LinkConfigScreen(
         LinkDialog(
             initial = editingLink,
             onDismiss = { showDialog = false },
-            onConfirm = { label, url ->
+            onConfirm = { label, url, visible ->
                 val editing = editingLink
                 if (editing != null) {
-                    viewModel.update(editing.id, label, url)
+                    viewModel.update(editing.id, label, url, visible)
                 } else {
-                    viewModel.add(label, url)
+                    viewModel.add(label, url, visible)
                 }
                 showDialog = false
             }
@@ -138,49 +140,61 @@ fun LinkConfigScreen(
 private fun LinkConfigItem(
     link: LinkConfig,
     onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    onVisibleChange: (Boolean) -> Unit
 ) {
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = link.label,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = link.url,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                IconButton(onClick = onEditClick) {
+                    Icon(
+                        Icons.Outlined.Edit,
+                        contentDescription = "Editar",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+                IconButton(onClick = onDeleteClick) {
+                    Icon(
+                        Icons.Outlined.Delete,
+                        contentDescription = "Eliminar",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
-                    text = link.label,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = link.url,
+                    text = if (link.visible) "Visible en pantalla principal" else "Oculto",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    modifier = Modifier.weight(1f)
                 )
-            }
-            IconButton(onClick = onEditClick) {
-                Icon(
-                    Icons.Outlined.Edit,
-                    contentDescription = "Editar",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-            IconButton(onClick = onDeleteClick) {
-                Icon(
-                    Icons.Outlined.Delete,
-                    contentDescription = "Eliminar",
-                    tint = MaterialTheme.colorScheme.error
-                )
+                Switch(checked = link.visible, onCheckedChange = onVisibleChange)
             }
         }
     }
@@ -190,10 +204,11 @@ private fun LinkConfigItem(
 private fun LinkDialog(
     initial: LinkConfig?,
     onDismiss: () -> Unit,
-    onConfirm: (label: String, url: String) -> Unit
+    onConfirm: (label: String, url: String, visible: Boolean) -> Unit
 ) {
     var label by rememberSaveable { mutableStateOf(initial?.label ?: "") }
     var url by rememberSaveable { mutableStateOf(initial?.url ?: "") }
+    var visible by rememberSaveable { mutableStateOf(initial?.visible ?: true) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -223,11 +238,22 @@ private fun LinkDialog(
                     supportingText = { Text("Incluye https:// al principio") },
                     modifier = Modifier.fillMaxWidth()
                 )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Mostrar en pantalla principal",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Switch(checked = visible, onCheckedChange = { visible = it })
+                }
             }
         },
         confirmButton = {
             TextButton(
-                onClick = { onConfirm(label, url) },
+                onClick = { onConfirm(label, url, visible) },
                 enabled = label.isNotBlank() && url.isNotBlank()
             ) {
                 Text("Guardar")

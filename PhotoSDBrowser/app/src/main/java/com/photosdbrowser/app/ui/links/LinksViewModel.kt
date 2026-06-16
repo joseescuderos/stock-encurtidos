@@ -17,7 +17,7 @@ sealed interface LinksUiState {
 class LinksViewModel(application: Application) : AndroidViewModel(application) {
 
     val uiState = LinkConfigRepository(application).links
-        .map { LinksUiState.Ready(it) }
+        .map { links -> LinksUiState.Ready(links.filter { it.visible }) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),

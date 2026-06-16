@@ -20,23 +20,37 @@ class LinkConfigViewModel(application: Application) : AndroidViewModel(applicati
         initialValue = emptyList()
     )
 
-    fun add(label: String, url: String) {
+    fun add(label: String, url: String, visible: Boolean) {
         if (label.isBlank() || url.isBlank()) return
         viewModelScope.launch {
             val updated = links.value + LinkConfig(
                 id = UUID.randomUUID().toString(),
                 label = label.trim(),
-                url = url.trim()
+                url = url.trim(),
+                visible = visible
             )
             repository.save(updated)
         }
     }
 
-    fun update(id: String, label: String, url: String) {
+    fun update(id: String, label: String, url: String, visible: Boolean) {
         if (label.isBlank() || url.isBlank()) return
         viewModelScope.launch {
             val updated = links.value.map { link ->
-                if (link.id == id) link.copy(label = label.trim(), url = url.trim()) else link
+                if (link.id == id) {
+                    link.copy(label = label.trim(), url = url.trim(), visible = visible)
+                } else {
+                    link
+                }
+            }
+            repository.save(updated)
+        }
+    }
+
+    fun setVisible(id: String, visible: Boolean) {
+        viewModelScope.launch {
+            val updated = links.value.map { link ->
+                if (link.id == id) link.copy(visible = visible) else link
             }
             repository.save(updated)
         }

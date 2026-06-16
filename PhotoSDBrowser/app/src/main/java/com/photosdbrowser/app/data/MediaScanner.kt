@@ -2,7 +2,7 @@ package com.photosdbrowser.app.data
 
 import android.content.Context
 import android.net.Uri
-import androidx.documentfile.provider.DocumentFile
+import android.provider.DocumentsContract
 import com.photosdbrowser.app.data.model.FolderInfo
 import com.photosdbrowser.app.data.model.PhotoInfo
 import kotlinx.coroutines.Dispatchers
@@ -14,88 +14,124 @@ private val IMAGE_EXTENSIONS = setOf(
 )
 private val RAW_EXTENSIONS = setOf("cr2", "arw", "nef")
 
-/** How many levels of subfolders to search below the chosen root for photo folders. */
-private const val MAX_SCAN_DEPTH = 4
-
 private fun String?.extension(): String =
     this.orEmpty().substringAfterLast('.', "").lowercase()
 
-private fun DocumentFile.isImageFile(): Boolean =
-    isFile && name.extension() in IMAGE_EXTENSIONS
+private data class Entry(val documentId: String, val name: String, val isDirectory: Boolean) {
+    val isImage: Boolean get() = !isDirectory && name.extension() in IMAGE_EXTENSIONS
+}
 
 /**
- * Scans a SAF directory tree on a background thread using [DocumentFile] so it works for both
- * internal storage and removable SD cards picked through the storage access framework.
+ * Scans a SAF directory tree using [DocumentsContract] + [android.content.ContentResolver]
+ * directly (instead of DocumentFile) because that is far more reliable when enumerating the
+ * children of nested subfolders on removable SD cards picked through the storage access framework.
  */
 class MediaScanner(private val context: Context) {
 
     /**
-     * Walks the tree below [rootUri] up to [MAX_SCAN_DEPTH] levels deep and returns every folder
-     * (at any depth, including the root itself) that directly contains photos. This covers SD
-     * card layouts where photos sit straight inside the chosen folder as well as layouts with
-     * one or more levels of subfolders (e.g. DCIM/100CANON).
+     * Shows the top-level folders inside [rootUri] (plus the root itself if it holds photos
+     * directly). Each folder uses, as its cover, the first photo found anywhere inside it.
      */
     suspend fun scanFolders(rootUri: Uri): List<FolderInfo> = withContext(Dispatchers.IO) {
-        val root = DocumentFile.fromTreeUri(context, rootUri) ?: return@withContext emptyList()
-        val children = root.listFiles() ?: return@withContext emptyList()
+        val rootDocId = DocumentsContract.getTreeDocumentId(rootUri)
         val folders = mutableListOf<FolderInfo>()
 
-        // If root itself contains photos directly, add it as a folder entry
-        val rootPhotos = children.filter { it.isImageFile() }
+        val rootChildren = listChildren(rootUri, rootDocId)
+
+        val rootPhotos = rootChildren.filter { it.isImage }
         if (rootPhotos.isNotEmpty()) {
             folders += FolderInfo(
-                uri = root.uri,
-                name = root.name.orEmpty(),
-                coverUri = rootPhotos.first().uri,
-                photoCount = countPhotosRecursive(root)
+                uri = docUri(rootUri, rootDocId),
+                name = displayName(rootUri, rootDocId),
+                coverUri = docUri(rootUri, rootPhotos.first().documentId),
+                photoCount = countPhotos(rootUri, rootDocId)
             )
         }
 
-        // Each immediate subfolder that has photos anywhere inside it
-        children.filter { it.isDirectory }.forEach { subdir ->
-            val cover = findFirstPhoto(subdir) ?: return@forEach
+        rootChildren.filter { it.isDirectory }.forEach { dir ->
+            val cover = findFirstPhoto(rootUri, dir.documentId) ?: return@forEach
             folders += FolderInfo(
-                uri = subdir.uri,
-                name = subdir.name.orEmpty(),
+                uri = docUri(rootUri, dir.documentId),
+                name = dir.name,
                 coverUri = cover,
-                photoCount = countPhotosRecursive(subdir)
+                photoCount = countPhotos(rootUri, dir.documentId)
             )
         }
 
         folders.sortedBy { it.name.lowercase() }
     }
 
-    private fun findFirstPhoto(folder: DocumentFile): Uri? {
-        val children = folder.listFiles() ?: return null
-        children.find { it.isImageFile() }?.let { return it.uri }
-        children.filter { it.isDirectory }.forEach { sub ->
-            findFirstPhoto(sub)?.let { return it }
+    /** Collects every photo inside [folderUri] and all of its subfolders, at any depth. */
+    suspend fun scanPhotos(folderUri: Uri): List<PhotoInfo> = withContext(Dispatchers.IO) {
+        val docId = DocumentsContract.getDocumentId(folderUri)
+        val photos = mutableListOf<PhotoInfo>()
+        collectPhotos(folderUri, docId, photos)
+        photos.sortedBy { it.name.lowercase() }
+    }
+
+    private fun collectPhotos(treeUri: Uri, parentDocId: String, into: MutableList<PhotoInfo>) {
+        listChildren(treeUri, parentDocId).forEach { entry ->
+            if (entry.isImage) {
+                into += PhotoInfo(
+                    uri = docUri(treeUri, entry.documentId),
+                    name = entry.name,
+                    isRaw = entry.name.extension() in RAW_EXTENSIONS
+                )
+            } else if (entry.isDirectory) {
+                collectPhotos(treeUri, entry.documentId, into)
+            }
+        }
+    }
+
+    private fun findFirstPhoto(treeUri: Uri, parentDocId: String): Uri? {
+        val children = listChildren(treeUri, parentDocId)
+        children.firstOrNull { it.isImage }?.let { return docUri(treeUri, it.documentId) }
+        children.filter { it.isDirectory }.forEach { dir ->
+            findFirstPhoto(treeUri, dir.documentId)?.let { return it }
         }
         return null
     }
 
-    private fun countPhotosRecursive(folder: DocumentFile): Int {
-        val children = folder.listFiles() ?: return 0
-        return children.count { it.isImageFile() } +
-            children.filter { it.isDirectory }.sumOf { countPhotosRecursive(it) }
+    private fun countPhotos(treeUri: Uri, parentDocId: String): Int {
+        val children = listChildren(treeUri, parentDocId)
+        return children.count { it.isImage } +
+            children.filter { it.isDirectory }.sumOf { countPhotos(treeUri, it.documentId) }
     }
 
-    suspend fun scanPhotos(folderUri: Uri): List<PhotoInfo> = withContext(Dispatchers.IO) {
-        val folder = DocumentFile.fromTreeUri(context, folderUri) ?: return@withContext emptyList()
-        val photos = mutableListOf<PhotoInfo>()
-        collectPhotosRecursive(folder, photos)
-        photos.sortedBy { it.name.lowercase() }
-    }
-
-    private fun collectPhotosRecursive(folder: DocumentFile, into: MutableList<PhotoInfo>) {
-        val children = folder.listFiles() ?: return
-        children.forEach { file ->
-            if (file.isImageFile()) {
-                val name = file.name.orEmpty()
-                into += PhotoInfo(uri = file.uri, name = name, isRaw = name.extension() in RAW_EXTENSIONS)
-            } else if (file.isDirectory) {
-                collectPhotosRecursive(file, into)
+    private fun listChildren(treeUri: Uri, parentDocId: String): List<Entry> {
+        val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, parentDocId)
+        val result = mutableListOf<Entry>()
+        val projection = arrayOf(
+            DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+            DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+            DocumentsContract.Document.COLUMN_MIME_TYPE
+        )
+        runCatching {
+            context.contentResolver.query(childrenUri, projection, null, null, null)
+        }.getOrNull()?.use { cursor ->
+            while (cursor.moveToNext()) {
+                val id = cursor.getString(0) ?: continue
+                val name = cursor.getString(1) ?: ""
+                val mime = cursor.getString(2)
+                result += Entry(
+                    documentId = id,
+                    name = name,
+                    isDirectory = mime == DocumentsContract.Document.MIME_TYPE_DIR
+                )
             }
         }
+        return result
     }
+
+    private fun docUri(treeUri: Uri, documentId: String): Uri =
+        DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId)
+
+    private fun displayName(treeUri: Uri, documentId: String): String =
+        runCatching {
+            context.contentResolver.query(
+                docUri(treeUri, documentId),
+                arrayOf(DocumentsContract.Document.COLUMN_DISPLAY_NAME),
+                null, null, null
+            )?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
+        }.getOrNull() ?: ""
 }
