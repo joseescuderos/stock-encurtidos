@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.24"
 }
 
 android {
@@ -46,14 +47,6 @@ android {
     }
 }
 
-configurations.all {
-    resolutionStrategy.eachDependency {
-        if (requested.group == "kotlinx.serialization") {
-            useTarget("org.jetbrains.kotlinx:${requested.name}:${requested.version}")
-        }
-    }
-}
-
 dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
@@ -74,6 +67,9 @@ dependencies {
     implementation("androidx.exifinterface:exifinterface:1.3.7")
 
     implementation("io.coil-kt:coil-compose:2.6.0")
+
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
