@@ -18,7 +18,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FolderOpen
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,6 +49,7 @@ import com.photosdbrowser.app.ui.components.StorageAccessRequest
 @Composable
 fun FolderListScreen(
     onFolderClick: (FolderInfo) -> Unit,
+    onBackClick: () -> Unit = {},
     viewModel: FolderListViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -61,10 +62,15 @@ fun FolderListScreen(
         topBar = {
             TopAppBar(
                 title = {},
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Atrás")
+                    }
+                },
                 actions = {
                     IconButton(onClick = { folderPicker.launch(null) }) {
                         Icon(
-                            imageVector = Icons.Outlined.FolderOpen,
+                            imageVector = androidx.compose.material.icons.Icons.Outlined.FolderOpen,
                             contentDescription = "Elegir carpeta de la tarjeta SD",
                             tint = MaterialTheme.colorScheme.onBackground
                         )

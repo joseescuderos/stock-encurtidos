@@ -7,11 +7,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.photosdbrowser.app.ui.linkconfig.LinkConfigScreen
+import com.photosdbrowser.app.ui.links.LinksScreen
 import com.photosdbrowser.app.ui.folderlist.FolderListScreen
 import com.photosdbrowser.app.ui.photogrid.PhotoGridScreen
 import com.photosdbrowser.app.ui.photoviewer.PhotoViewerScreen
 
 private object Routes {
+    const val LINKS = "links"
+    const val LINK_CONFIG = "link_config"
     const val FOLDER_LIST = "folder_list"
     const val PHOTO_GRID = "photo_grid/{folderUri}/{folderName}"
     const val PHOTO_VIEWER = "photo_viewer/{folderUri}/{startIndex}"
@@ -27,12 +31,24 @@ private object Routes {
 fun PhotoBrowserNavGraph() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = Routes.FOLDER_LIST) {
+    NavHost(navController = navController, startDestination = Routes.LINKS) {
+        composable(Routes.LINKS) {
+            LinksScreen(
+                onSettingsClick = { navController.navigate(Routes.LINK_CONFIG) },
+                onPhotosClick = { navController.navigate(Routes.FOLDER_LIST) }
+            )
+        }
+
+        composable(Routes.LINK_CONFIG) {
+            LinkConfigScreen(onBackClick = { navController.popBackStack() })
+        }
+
         composable(Routes.FOLDER_LIST) {
             FolderListScreen(
                 onFolderClick = { folder ->
                     navController.navigate(Routes.photoGrid(folder.uri, folder.name))
-                }
+                },
+                onBackClick = { navController.popBackStack() }
             )
         }
 
