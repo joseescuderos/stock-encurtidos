@@ -21,6 +21,8 @@ private data class Entry(val documentId: String, val name: String, val isDirecto
     val isImage: Boolean get() = !isDirectory && name.extension() in IMAGE_EXTENSIONS
 }
 
+private data class FolderScan(val cover: android.net.Uri?, val count: Int)
+
 /**
  * Scans a SAF directory tree using [DocumentsContract] + [android.content.ContentResolver]
  * directly (instead of DocumentFile) because that is far more reliable when enumerating the
@@ -40,21 +42,23 @@ class MediaScanner(private val context: Context) {
 
         val rootPhotos = rootChildren.filter { it.isImage }
         if (rootPhotos.isNotEmpty()) {
+            // Root shown as a folder for any photos sitting directly inside the chosen folder.
             folders += FolderInfo(
                 uri = docUri(rootUri, rootDocId),
                 name = displayName(rootUri, rootDocId),
                 coverUri = docUri(rootUri, rootPhotos.first().documentId),
-                photoCount = countPhotos(rootUri, rootDocId)
+                photoCount = rootPhotos.size
             )
         }
 
         rootChildren.filter { it.isDirectory }.forEach { dir ->
-            val cover = findFirstPhoto(rootUri, dir.documentId) ?: return@forEach
+            val scan = scanFolderContents(rootUri, dir.documentId)
+            val cover = scan.cover ?: return@forEach
             folders += FolderInfo(
                 uri = docUri(rootUri, dir.documentId),
                 name = dir.name,
                 coverUri = cover,
-                photoCount = countPhotos(rootUri, dir.documentId)
+                photoCount = scan.count
             )
         }
 
@@ -83,19 +87,30 @@ class MediaScanner(private val context: Context) {
         }
     }
 
-    private fun findFirstPhoto(treeUri: Uri, parentDocId: String): Uri? {
-        val children = listChildren(treeUri, parentDocId)
-        children.firstOrNull { it.isImage }?.let { return docUri(treeUri, it.documentId) }
-        children.filter { it.isDirectory }.forEach { dir ->
-            findFirstPhoto(treeUri, dir.documentId)?.let { return it }
+    /**
+     * Walks the subtree under [parentDocId] a single time, gathering both the cover photo (the
+     * first one found) and the total photo count. Doing it in one pass — instead of one walk for
+     * the cover and another for the count — roughly halves the SAF queries, which are the slow part
+     * on removable SD cards.
+     */
+    private fun scanFolderContents(treeUri: Uri, parentDocId: String): FolderScan {
+        var cover: Uri? = null
+        var count = 0
+        val pending = ArrayDeque<String>()
+        pending.addLast(parentDocId)
+        while (pending.isNotEmpty()) {
+            val current = pending.removeLast()
+            listChildren(treeUri, current).forEach { entry ->
+                when {
+                    entry.isImage -> {
+                        count++
+                        if (cover == null) cover = docUri(treeUri, entry.documentId)
+                    }
+                    entry.isDirectory -> pending.addLast(entry.documentId)
+                }
+            }
         }
-        return null
-    }
-
-    private fun countPhotos(treeUri: Uri, parentDocId: String): Int {
-        val children = listChildren(treeUri, parentDocId)
-        return children.count { it.isImage } +
-            children.filter { it.isDirectory }.sumOf { countPhotos(treeUri, it.documentId) }
+        return FolderScan(cover, count)
     }
 
     private fun listChildren(treeUri: Uri, parentDocId: String): List<Entry> {
