@@ -9,5 +9,6 @@ data class FolderInfo(
     val uri: Uri,
     val name: String,
     val coverUri: Uri?,
-    val photoCount: Int
+    val photoCount: Int,
+    val lastModified: Long = 0L
 )

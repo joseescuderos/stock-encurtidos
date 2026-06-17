@@ -4,7 +4,9 @@ import android.app.Activity
 import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -14,9 +16,14 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -41,16 +49,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.photosdbrowser.app.ui.components.ZoomableImage
 import kotlinx.coroutines.delay
 
-private const val SLIDESHOW_INTERVAL_MS = 4000L
+private val SLIDESHOW_SPEED_OPTIONS = listOf(3_000L to "3 segundos", 5_000L to "5 segundos", 8_000L to "8 segundos")
 
 /**
- * Chrome-free full-screen viewer on the brand's light background, meant for showing
- * reportages to clients on a tablet. Swipe left/right to move between photos, pinch to
- * zoom and pan within a photo — pager swipes are disabled while the current photo is
- * zoomed in so the two gestures don't fight each other. A play/pause button starts an
- * optional slideshow that advances photos automatically, so the photographer can talk
- * through the work hands-free; system bars are hidden for a distraction-free, immersive
- * presentation.
+ * Chrome-free full-screen viewer meant for showing reportages to clients on a tablet. Swipe
+ * left/right between photos, pinch to zoom and pan; pager swipes are disabled while zoomed so
+ * the gestures don't fight. A play/pause button runs an optional slideshow whose speed is
+ * adjustable, a heart lets the client mark favourites, and system bars are hidden for an
+ * immersive presentation.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -62,6 +68,8 @@ fun PhotoViewerScreen(
 ) {
     LaunchedEffect(folderUri) { viewModel.load(folderUri, startIndex) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val favorites by viewModel.favorites.collectAsStateWithLifecycle()
+    val slideshowInterval by viewModel.slideshowIntervalMs.collectAsStateWithLifecycle()
 
     ImmersiveSystemBars()
 
@@ -80,7 +88,13 @@ fun PhotoViewerScreen(
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.align(Alignment.Center)
             )
-            else -> PhotoPager(uiState = uiState)
+            else -> PhotoPager(
+                uiState = uiState,
+                favorites = favorites,
+                slideshowIntervalMs = slideshowInterval,
+                onToggleFavorite = viewModel::toggleFavorite,
+                onSelectInterval = viewModel::setSlideshowInterval
+            )
         }
 
         IconButton(
@@ -118,22 +132,31 @@ private fun ImmersiveSystemBars() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun PhotoPager(uiState: PhotoViewerUiState) {
+private fun PhotoPager(
+    uiState: PhotoViewerUiState,
+    favorites: Set<String>,
+    slideshowIntervalMs: Long,
+    onToggleFavorite: (String) -> Unit,
+    onSelectInterval: (Long) -> Unit
+) {
     val pagerState = rememberPagerState(initialPage = uiState.startIndex) { uiState.photos.size }
     var isCurrentPageZoomed by remember { mutableStateOf(false) }
     var isSlideshowPlaying by remember { mutableStateOf(false) }
 
     LaunchedEffect(pagerState.currentPage) { isCurrentPageZoomed = false }
 
-    LaunchedEffect(isSlideshowPlaying, isCurrentPageZoomed, uiState.photos.size) {
+    LaunchedEffect(isSlideshowPlaying, isCurrentPageZoomed, slideshowIntervalMs, uiState.photos.size) {
         if (isSlideshowPlaying && !isCurrentPageZoomed) {
             while (true) {
-                delay(SLIDESHOW_INTERVAL_MS)
+                delay(slideshowIntervalMs)
                 val nextPage = (pagerState.currentPage + 1) % uiState.photos.size
                 pagerState.animateScrollToPage(nextPage)
             }
         }
     }
+
+    val currentUri = uiState.photos.getOrNull(pagerState.currentPage)?.uri?.toString()
+    val isCurrentFavorite = currentUri != null && currentUri in favorites
 
     Box(modifier = Modifier.fillMaxSize()) {
         HorizontalPager(
@@ -154,18 +177,24 @@ private fun PhotoPager(uiState: PhotoViewerUiState) {
             )
         }
 
-        IconButton(
-            onClick = { isSlideshowPlaying = !isSlideshowPlaying },
+        Row(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .statusBarsPadding()
-                .padding(8.dp)
-                .clip(RoundedCornerShape(50))
-                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Icon(
-                imageVector = if (isSlideshowPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                contentDescription = if (isSlideshowPlaying) "Pausar presentación automática" else "Iniciar presentación automática",
+            PillIconButton(
+                onClick = { currentUri?.let(onToggleFavorite) },
+                icon = if (isCurrentFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                contentDescription = if (isCurrentFavorite) "Quitar de favoritos" else "Marcar como favorita",
+                tint = if (isCurrentFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+            )
+            SpeedMenu(currentMs = slideshowIntervalMs, onSelect = onSelectInterval)
+            PillIconButton(
+                onClick = { isSlideshowPlaying = !isSlideshowPlaying },
+                icon = if (isSlideshowPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                contentDescription = if (isSlideshowPlaying) "Pausar presentación" else "Iniciar presentación",
                 tint = MaterialTheme.colorScheme.onSurface
             )
         }
@@ -182,5 +211,46 @@ private fun PhotoPager(uiState: PhotoViewerUiState) {
                 .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
                 .padding(horizontal = 14.dp, vertical = 6.dp)
         )
+    }
+}
+
+@Composable
+private fun PillIconButton(
+    onClick: () -> Unit,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String,
+    tint: Color
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
+    ) {
+        Icon(imageVector = icon, contentDescription = contentDescription, tint = tint)
+    }
+}
+
+@Composable
+private fun SpeedMenu(currentMs: Long, onSelect: (Long) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        PillIconButton(
+            onClick = { expanded = true },
+            icon = Icons.Outlined.Timer,
+            contentDescription = "Velocidad de la presentación",
+            tint = MaterialTheme.colorScheme.onSurface
+        )
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            SLIDESHOW_SPEED_OPTIONS.forEach { (ms, label) ->
+                DropdownMenuItem(
+                    text = { Text(if (ms == currentMs) "● $label" else label) },
+                    onClick = {
+                        onSelect(ms)
+                        expanded = false
+                    }
+                )
+            }
+        }
     }
 }

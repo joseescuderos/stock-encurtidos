@@ -17,7 +17,12 @@ private val RAW_EXTENSIONS = setOf("cr2", "arw", "nef")
 private fun String?.extension(): String =
     this.orEmpty().substringAfterLast('.', "").lowercase()
 
-private data class Entry(val documentId: String, val name: String, val isDirectory: Boolean) {
+private data class Entry(
+    val documentId: String,
+    val name: String,
+    val isDirectory: Boolean,
+    val lastModified: Long
+) {
     val isImage: Boolean get() = !isDirectory && name.extension() in IMAGE_EXTENSIONS
 }
 
@@ -58,7 +63,8 @@ class MediaScanner(private val context: Context) {
                 uri = docUri(rootUri, dir.documentId),
                 name = dir.name,
                 coverUri = cover,
-                photoCount = scan.count
+                photoCount = scan.count,
+                lastModified = dir.lastModified
             )
         }
 
@@ -79,7 +85,8 @@ class MediaScanner(private val context: Context) {
                 into += PhotoInfo(
                     uri = docUri(treeUri, entry.documentId),
                     name = entry.name,
-                    isRaw = entry.name.extension() in RAW_EXTENSIONS
+                    isRaw = entry.name.extension() in RAW_EXTENSIONS,
+                    lastModified = entry.lastModified
                 )
             } else if (entry.isDirectory) {
                 collectPhotos(treeUri, entry.documentId, into)
@@ -119,7 +126,8 @@ class MediaScanner(private val context: Context) {
         val projection = arrayOf(
             DocumentsContract.Document.COLUMN_DOCUMENT_ID,
             DocumentsContract.Document.COLUMN_DISPLAY_NAME,
-            DocumentsContract.Document.COLUMN_MIME_TYPE
+            DocumentsContract.Document.COLUMN_MIME_TYPE,
+            DocumentsContract.Document.COLUMN_LAST_MODIFIED
         )
         runCatching {
             context.contentResolver.query(childrenUri, projection, null, null, null)
@@ -128,10 +136,12 @@ class MediaScanner(private val context: Context) {
                 val id = cursor.getString(0) ?: continue
                 val name = cursor.getString(1) ?: ""
                 val mime = cursor.getString(2)
+                val lastModified = if (cursor.isNull(3)) 0L else cursor.getLong(3)
                 result += Entry(
                     documentId = id,
                     name = name,
-                    isDirectory = mime == DocumentsContract.Document.MIME_TYPE_DIR
+                    isDirectory = mime == DocumentsContract.Document.MIME_TYPE_DIR,
+                    lastModified = lastModified
                 )
             }
         }

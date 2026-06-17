@@ -9,5 +9,6 @@ import android.net.Uri
 data class PhotoInfo(
     val uri: Uri,
     val name: String,
-    val isRaw: Boolean
+    val isRaw: Boolean,
+    val lastModified: Long = 0L
 )

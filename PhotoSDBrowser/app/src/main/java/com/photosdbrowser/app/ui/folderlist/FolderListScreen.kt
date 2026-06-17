@@ -8,10 +8,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -19,19 +19,25 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.FolderOpen
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -43,12 +49,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.photosdbrowser.app.R
-
-private const val COVER_SIZE_PX = 500
 import com.photosdbrowser.app.data.model.FolderInfo
+import com.photosdbrowser.app.data.model.SortOrder
 import com.photosdbrowser.app.ui.components.LoadingContent
 import com.photosdbrowser.app.ui.components.MessageContent
+import com.photosdbrowser.app.ui.components.SortMenu
 import com.photosdbrowser.app.ui.components.StorageAccessRequest
+
+private const val COVER_SIZE_PX = 500
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,6 +66,8 @@ fun FolderListScreen(
     viewModel: FolderListViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var query by rememberSaveable { mutableStateOf("") }
+    var sortOrder by rememberSaveable { mutableStateOf(SortOrder.NAME) }
 
     val folderPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree()
@@ -73,6 +83,9 @@ fun FolderListScreen(
                     }
                 },
                 actions = {
+                    if (uiState is FolderListUiState.Success) {
+                        SortMenu(current = sortOrder, onSelect = { sortOrder = it })
+                    }
                     IconButton(onClick = { folderPicker.launch(null) }) {
                         Icon(
                             imageVector = Icons.Outlined.FolderOpen,
@@ -103,14 +116,52 @@ fun FolderListScreen(
                     is FolderListUiState.Loading -> LoadingContent()
                     is FolderListUiState.Empty -> MessageContent("No se han encontrado carpetas con fotos en esta ubicación.")
                     is FolderListUiState.Error -> MessageContent(state.message)
-                    is FolderListUiState.Success -> FolderGrid(
-                        folders = state.folders,
-                        onFolderClick = onFolderClick
-                    )
+                    is FolderListUiState.Success -> {
+                        val folders = state.folders
+                            .filter { it.name.contains(query.trim(), ignoreCase = true) }
+                            .sortedWith(sortOrder.folderComparator())
+
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            SearchField(query = query, onQueryChange = { query = it })
+                            if (folders.isEmpty()) {
+                                MessageContent("No hay carpetas que coincidan con la búsqueda.")
+                            } else {
+                                FolderGrid(folders = folders, onFolderClick = onFolderClick)
+                            }
+                        }
+                    }
                 }
             }
         }
     }
+}
+
+private fun SortOrder.folderComparator(): Comparator<FolderInfo> = when (this) {
+    SortOrder.NAME -> compareBy { it.name.lowercase() }
+    SortOrder.DATE_DESC -> compareByDescending { it.lastModified }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        singleLine = true,
+        placeholder = { Text("Buscar carpeta…") },
+        leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(Icons.Outlined.Close, contentDescription = "Borrar búsqueda")
+                }
+            }
+        },
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+    )
 }
 
 /** Wordmark + lema de la marca, mostrados en la cabecera de la pantalla principal. */
@@ -145,15 +196,16 @@ private fun FolderGrid(folders: List<FolderInfo>, onFolderClick: (FolderInfo) ->
 private fun FolderCard(folder: FolderInfo, onClick: () -> Unit) {
     Card(
         onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(folder.coverUri)
                     .size(COVER_SIZE_PX)
-                    .crossfade(false)
+                    .crossfade(180)
                     .build(),
                 contentDescription = folder.name,
                 contentScale = ContentScale.Crop,

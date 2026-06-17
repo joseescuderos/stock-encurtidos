@@ -2,6 +2,7 @@ package com.photosdbrowser.app.ui.theme
 
 import android.app.Activity
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -22,26 +23,44 @@ private val JoseEscuderosLightColors = lightColorScheme(
     onSecondary = OnLightPrimary
 )
 
+private val JoseEscuderosDarkColors = darkColorScheme(
+    primary = BrandGold,
+    onPrimary = OnDarkButton,
+    background = DarkBackground,
+    onBackground = OnDarkPrimary,
+    surface = DarkSurface,
+    onSurface = OnDarkPrimary,
+    surfaceVariant = DarkSurfaceVariant,
+    onSurfaceVariant = OnDarkSecondary,
+    secondary = BrandGold,
+    onSecondary = OnDarkButton
+)
+
 /**
- * Light theme matching the "joseescuderos" brand identity (white background, warm
- * wine-to-gold accents) used across all three screens.
+ * Tema de marca "joseescuderos". En claro usa fondo blanco con acentos granate/dorado; en
+ * oscuro usa negro puro (AMOLED) para resaltar las fotos. El usuario alterna desde Ajustes.
  */
 @Composable
-fun PhotoSDBrowserTheme(content: @Composable () -> Unit) {
+fun PhotoSDBrowserTheme(
+    darkTheme: Boolean = false,
+    content: @Composable () -> Unit
+) {
+    val colors = if (darkTheme) JoseEscuderosDarkColors else JoseEscuderosLightColors
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = LightBackground.toArgb()
-            window.navigationBarColor = LightBackground.toArgb()
+            window.statusBarColor = colors.background.toArgb()
+            window.navigationBarColor = colors.background.toArgb()
             val controller = WindowCompat.getInsetsController(window, view)
-            controller.isAppearanceLightStatusBars = true
-            controller.isAppearanceLightNavigationBars = true
+            controller.isAppearanceLightStatusBars = !darkTheme
+            controller.isAppearanceLightNavigationBars = !darkTheme
         }
     }
 
     MaterialTheme(
-        colorScheme = JoseEscuderosLightColors,
+        colorScheme = colors,
         typography = Typography,
         content = content
     )

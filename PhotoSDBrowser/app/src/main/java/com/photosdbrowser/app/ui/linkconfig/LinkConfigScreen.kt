@@ -46,17 +46,21 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.outlined.DarkMode
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.photosdbrowser.app.data.model.LinkConfig
+import com.photosdbrowser.app.ui.settings.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LinkConfigScreen(
     onBackClick: () -> Unit,
-    viewModel: LinkConfigViewModel = viewModel()
+    viewModel: LinkConfigViewModel = viewModel(),
+    settingsViewModel: SettingsViewModel = viewModel()
 ) {
     val links by viewModel.links.collectAsStateWithLifecycle()
+    val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
     var showDialog by rememberSaveable { mutableStateOf(false) }
     var editingLink by remember { mutableStateOf<LinkConfig?>(null) }
 
@@ -95,13 +99,28 @@ fun LinkConfigScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 16.dp)
         ) {
+            item {
+                AppearanceCard(
+                    darkTheme = settings.darkTheme,
+                    onDarkThemeChange = settingsViewModel::setDarkTheme
+                )
+            }
+            item {
+                Text(
+                    text = "Galerías",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp, start = 4.dp)
+                )
+            }
             if (links.isEmpty()) {
                 item {
                     Text(
                         text = "Pulsa + para añadir tu primera galería",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 32.dp, start = 8.dp)
+                        modifier = Modifier.padding(top = 8.dp, start = 8.dp)
                     )
                 }
             }
@@ -133,6 +152,47 @@ fun LinkConfigScreen(
                 showDialog = false
             }
         )
+    }
+}
+
+@Composable
+private fun AppearanceCard(
+    darkTheme: Boolean,
+    onDarkThemeChange: (Boolean) -> Unit
+) {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.DarkMode,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Column(modifier = Modifier
+                .weight(1f)
+                .padding(start = 16.dp)) {
+                Text(
+                    text = "Modo oscuro",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "Fondo negro para resaltar las fotos",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(checked = darkTheme, onCheckedChange = onDarkThemeChange)
+        }
     }
 }
 
