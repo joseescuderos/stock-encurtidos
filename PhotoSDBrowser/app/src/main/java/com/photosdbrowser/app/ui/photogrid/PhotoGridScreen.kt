@@ -26,11 +26,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+
+private const val THUMBNAIL_SIZE_PX = 320
 import com.photosdbrowser.app.data.model.PhotoInfo
 import com.photosdbrowser.app.ui.components.LoadingContent
 import com.photosdbrowser.app.ui.components.MessageContent
@@ -83,6 +87,7 @@ fun PhotoGridScreen(
 
 @Composable
 private fun PhotoGrid(photos: List<PhotoInfo>, onPhotoClick: (Int) -> Unit) {
+    val context = LocalContext.current
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         contentPadding = PaddingValues(2.dp),
@@ -92,7 +97,13 @@ private fun PhotoGrid(photos: List<PhotoInfo>, onPhotoClick: (Int) -> Unit) {
     ) {
         itemsIndexed(photos, key = { _, photo -> photo.uri.toString() }) { index, photo ->
             AsyncImage(
-                model = photo.uri,
+                model = ImageRequest.Builder(context)
+                    .data(photo.uri)
+                    // Decode grid thumbnails small so the JPG is read/decoded at reduced
+                    // resolution instead of full size — much faster and lighter on memory.
+                    .size(THUMBNAIL_SIZE_PX)
+                    .crossfade(false)
+                    .build(),
                 contentDescription = photo.name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier

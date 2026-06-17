@@ -94,7 +94,7 @@ fun LinksScreen(
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 40.dp, vertical = 20.dp)
+                    .padding(horizontal = 20.dp, vertical = 28.dp)
             )
 
             when (val state = uiState) {

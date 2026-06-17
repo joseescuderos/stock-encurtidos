@@ -34,13 +34,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.photosdbrowser.app.R
+
+private const val COVER_SIZE_PX = 500
 import com.photosdbrowser.app.data.model.FolderInfo
 import com.photosdbrowser.app.ui.components.LoadingContent
 import com.photosdbrowser.app.ui.components.MessageContent
@@ -146,7 +150,11 @@ private fun FolderCard(folder: FolderInfo, onClick: () -> Unit) {
     ) {
         Column {
             AsyncImage(
-                model = folder.coverUri,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(folder.coverUri)
+                    .size(COVER_SIZE_PX)
+                    .crossfade(false)
+                    .build(),
                 contentDescription = folder.name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
