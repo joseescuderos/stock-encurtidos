@@ -1,7 +1,9 @@
 package com.photosdbrowser.app.navigation
 
 import android.net.Uri
+import android.util.Base64
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -13,6 +15,19 @@ import com.photosdbrowser.app.ui.folderlist.FolderListScreen
 import com.photosdbrowser.app.ui.photogrid.PhotoGridScreen
 import com.photosdbrowser.app.ui.photoviewer.PhotoViewerScreen
 
+private const val BASE64_FLAGS = Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING
+
+/**
+ * SAF document URIs contain ':' and '/' inside their document id (e.g. "1234-5678:BODAS/Sesion1").
+ * Percent-encoding them and letting Navigation decode once leads to a second decode that corrupts
+ * the URI. Encoding the whole value as URL-safe Base64 sidesteps all percent-encoding ambiguity.
+ */
+private fun encodeArg(value: String): String =
+    Base64.encodeToString(value.toByteArray(Charsets.UTF_8), BASE64_FLAGS)
+
+private fun decodeArg(value: String): String =
+    String(Base64.decode(value, BASE64_FLAGS), Charsets.UTF_8)
+
 private object Routes {
     const val LINKS = "links"
     const val LINK_CONFIG = "link_config"
@@ -21,10 +36,10 @@ private object Routes {
     const val PHOTO_VIEWER = "photo_viewer/{folderUri}/{startIndex}"
 
     fun photoGrid(folderUri: Uri, folderName: String) =
-        "photo_grid/${Uri.encode(folderUri.toString())}/${Uri.encode(folderName)}"
+        "photo_grid/${encodeArg(folderUri.toString())}/${encodeArg(folderName)}"
 
     fun photoViewer(folderUri: Uri, startIndex: Int) =
-        "photo_viewer/${Uri.encode(folderUri.toString())}/$startIndex"
+        "photo_viewer/${encodeArg(folderUri.toString())}/$startIndex"
 }
 
 @Composable
@@ -60,7 +75,7 @@ fun PhotoBrowserNavGraph() {
             )
         ) { backStackEntry ->
             val folderUri = backStackEntry.requireUriArg("folderUri")
-            val folderName = Uri.decode(backStackEntry.arguments?.getString("folderName").orEmpty())
+            val folderName = decodeArg(backStackEntry.arguments?.getString("folderName").orEmpty())
 
             PhotoGridScreen(
                 folderUri = folderUri,
@@ -91,5 +106,5 @@ fun PhotoBrowserNavGraph() {
     }
 }
 
-private fun androidx.navigation.NavBackStackEntry.requireUriArg(key: String): Uri =
-    Uri.parse(Uri.decode(requireNotNull(arguments?.getString(key)) { "Missing nav argument: $key" }))
+private fun NavBackStackEntry.requireUriArg(key: String): Uri =
+    Uri.parse(decodeArg(requireNotNull(arguments?.getString(key)) { "Missing nav argument: $key" }))
