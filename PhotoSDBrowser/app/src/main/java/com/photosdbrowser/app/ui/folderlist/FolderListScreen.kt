@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -70,7 +71,7 @@ fun FolderListScreen(
                 actions = {
                     IconButton(onClick = { folderPicker.launch(null) }) {
                         Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Outlined.FolderOpen,
+                            imageVector = Icons.Outlined.FolderOpen,
                             contentDescription = "Elegir carpeta de la tarjeta SD",
                             tint = MaterialTheme.colorScheme.onBackground
                         )
