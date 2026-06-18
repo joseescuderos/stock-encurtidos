@@ -4,7 +4,6 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.photosdbrowser.app.data.FavoritesRepository
 import com.photosdbrowser.app.data.MediaScanner
 import com.photosdbrowser.app.data.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,17 +17,10 @@ import kotlinx.coroutines.launch
 class PhotoViewerViewModel(application: Application) : AndroidViewModel(application) {
 
     private val scanner = MediaScanner(application)
-    private val favoritesRepository = FavoritesRepository(application)
     private val settingsRepository = SettingsRepository(application)
 
     private val _uiState = MutableStateFlow(PhotoViewerUiState())
     val uiState: StateFlow<PhotoViewerUiState> = _uiState.asStateFlow()
-
-    val favorites: StateFlow<Set<String>> = favoritesRepository.favorites.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = emptySet()
-    )
 
     val slideshowIntervalMs: StateFlow<Long> = settingsRepository.settings
         .map { it.slideshowIntervalMs }
@@ -52,10 +44,6 @@ class PhotoViewerViewModel(application: Application) : AndroidViewModel(applicat
                 isLoading = false
             )
         }
-    }
-
-    fun toggleFavorite(uri: String) {
-        viewModelScope.launch { favoritesRepository.toggle(uri) }
     }
 
     fun setSlideshowInterval(ms: Long) {

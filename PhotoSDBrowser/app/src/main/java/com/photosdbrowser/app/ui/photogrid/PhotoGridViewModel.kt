@@ -4,28 +4,18 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.photosdbrowser.app.data.FavoritesRepository
 import com.photosdbrowser.app.data.MediaScanner
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class PhotoGridViewModel(application: Application) : AndroidViewModel(application) {
 
     private val scanner = MediaScanner(application)
-    private val favoritesRepository = FavoritesRepository(application)
 
     private val _uiState = MutableStateFlow<PhotoGridUiState>(PhotoGridUiState.Loading)
     val uiState: StateFlow<PhotoGridUiState> = _uiState.asStateFlow()
-
-    val favorites: StateFlow<Set<String>> = favoritesRepository.favorites.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = emptySet()
-    )
 
     private var loadedFolderUri: Uri? = null
 
@@ -49,9 +39,5 @@ class PhotoGridViewModel(application: Application) : AndroidViewModel(applicatio
                     )
                 }
         }
-    }
-
-    fun toggleFavorite(uri: String) {
-        viewModelScope.launch { favoritesRepository.toggle(uri) }
     }
 }

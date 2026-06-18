@@ -16,10 +16,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -51,13 +49,6 @@ import kotlinx.coroutines.delay
 
 private val SLIDESHOW_SPEED_OPTIONS = listOf(3_000L to "3 segundos", 5_000L to "5 segundos", 8_000L to "8 segundos")
 
-/**
- * Chrome-free full-screen viewer meant for showing reportages to clients on a tablet. Swipe
- * left/right between photos, pinch to zoom and pan; pager swipes are disabled while zoomed so
- * the gestures don't fight. A play/pause button runs an optional slideshow whose speed is
- * adjustable, a heart lets the client mark favourites, and system bars are hidden for an
- * immersive presentation.
- */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PhotoViewerScreen(
@@ -68,7 +59,6 @@ fun PhotoViewerScreen(
 ) {
     LaunchedEffect(folderUri) { viewModel.load(folderUri, startIndex) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val favorites by viewModel.favorites.collectAsStateWithLifecycle()
     val slideshowInterval by viewModel.slideshowIntervalMs.collectAsStateWithLifecycle()
 
     ImmersiveSystemBars()
@@ -90,9 +80,7 @@ fun PhotoViewerScreen(
             )
             else -> PhotoPager(
                 uiState = uiState,
-                favorites = favorites,
                 slideshowIntervalMs = slideshowInterval,
-                onToggleFavorite = viewModel::toggleFavorite,
                 onSelectInterval = viewModel::setSlideshowInterval
             )
         }
@@ -115,7 +103,6 @@ fun PhotoViewerScreen(
     }
 }
 
-/** Hides the system status/navigation bars for a clean, distraction-free screen, restoring them on exit. */
 @Composable
 private fun ImmersiveSystemBars() {
     val view = LocalView.current
@@ -134,9 +121,7 @@ private fun ImmersiveSystemBars() {
 @Composable
 private fun PhotoPager(
     uiState: PhotoViewerUiState,
-    favorites: Set<String>,
     slideshowIntervalMs: Long,
-    onToggleFavorite: (String) -> Unit,
     onSelectInterval: (Long) -> Unit
 ) {
     val pagerState = rememberPagerState(initialPage = uiState.startIndex) { uiState.photos.size }
@@ -154,9 +139,6 @@ private fun PhotoPager(
             }
         }
     }
-
-    val currentUri = uiState.photos.getOrNull(pagerState.currentPage)?.uri?.toString()
-    val isCurrentFavorite = currentUri != null && currentUri in favorites
 
     Box(modifier = Modifier.fillMaxSize()) {
         HorizontalPager(
@@ -184,12 +166,6 @@ private fun PhotoPager(
                 .padding(8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            PillIconButton(
-                onClick = { currentUri?.let(onToggleFavorite) },
-                icon = if (isCurrentFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                contentDescription = if (isCurrentFavorite) "Quitar de favoritos" else "Marcar como favorita",
-                tint = if (isCurrentFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-            )
             SpeedMenu(currentMs = slideshowIntervalMs, onSelect = onSelectInterval)
             PillIconButton(
                 onClick = { isSlideshowPlaying = !isSlideshowPlaying },
