@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Áurea — Panel de Contenido</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg:           #0A0A0C;
+    --bg-glow:      radial-gradient(circle at 20% -10%, rgba(212,175,55,0.10), transparent 45%),
+                    radial-gradient(circle at 90% 0%, rgba(212,175,55,0.06), transparent 40%);
+    --surface:      #17171B;
+    --surface-2:    #1D1D22;
+    --border:       rgba(255,255,255,0.08);
+    --border-soft:  rgba(255,255,255,0.05);
+    --gold:         #D4AF37;
+    --gold-light:   #F0D584;
+    --gold-dim:     rgba(212,175,55,0.14);
+    --text:         #F3F1EA;
+    --text-2:       #9C9CA6;
+    --text-3:       #6C6C76;
+    --success:      #4ADE80;
+    --success-bg:   rgba(74,222,128,0.12);
+    --danger:       #E5484D;
+    --danger-bg:    rgba(229,72,77,0.12);
+    --draft:        #A6A6B0;
+    --draft-bg:     rgba(166,166,176,0.12);
+    --radius:       18px;
+    --radius-sm:    12px;
+  }
+
+  * { box-sizing: border-box; margin:0; padding:0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--bg); color: var(--text); }
+  body {
+    font-family: 'Inter', sans-serif;
+    background-image: var(--bg-glow);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  ::selection { background: var(--gold-dim); color: var(--gold-light); }
+  a, button { font-family: inherit; }
+  svg { display:block; }
+
+  /* ── SHELL / NAV ── */
+  .shell { display:flex; min-height:100vh; }
+
+  .sidebar {
+    width: 232px; flex-shrink:0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 22px 14px;
+    display:flex; flex-direction:column; gap:22px;
+    position: sticky; top:0; height:100vh;
+  }
+  .sidebar-brand { display:flex; align-items:center; gap:11px; padding:0 8px; }
+  .brand-mark {
+    width: 38px; height:38px; border-radius: 11px;
+    background: linear-gradient(155deg, #D4AF37, #8A6C1F);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    box-shadow: 0 4px 16px rgba(212,175,55,0.25);
+  }
+  .brand-mark svg { width:19px; height:19px; }
+  .brand-text h1 { font-family:'Playfair Display', serif; font-size: 18px; font-weight:700; color:var(--text); line-height:1.15; }
+  .brand-text p { font-size:11px; color:var(--text-2); margin-top:1px; }
+
+  .nav-list { display:flex; flex-direction:column; gap:3px; }
+  .nav-item {
+    display:flex; align-items:center; gap:12px;
+    padding:11px 12px; border-radius:10px;
+    color:var(--text-2); font-size:14px; font-weight:500;
+    cursor:pointer; transition: all .15s ease; border:none; background:transparent;
+    width:100%; text-align:left;
+  }
+  .nav-item svg { width:18px; height:18px; flex-shrink:0; }
+  .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+  .nav-item.active { background: var(--gold-dim); color: var(--gold-light); }
+  .sidebar-foot { margin-top:auto; padding:12px 8px 0; border-top:1px solid var(--border-soft); font-size:11.5px; color:var(--text-3); }
+
+  .main { flex:1; min-width:0; }
+  .app { max-width: 1200px; margin:0 auto; padding: 0 28px 60px; }
+
+  .bottom-nav {
+    display:none;
+    position:fixed; left:0; right:0; bottom:0; z-index:70;
+    background: rgba(23,23,27,0.92); backdrop-filter: blur(10px);
+    border-top:1px solid var(--border);
+    padding: 8px 4px calc(env(safe-area-inset-bottom,0px) + 6px);
+    justify-content: space-between;
+  }
+  .bottom-nav .nav-item {
+    flex-direction:column; gap:3px; padding:6px 4px;
+    font-size:10.5px; align-items:center; border-radius:10px; flex:1;
+  }
+  .bottom-nav .nav-item svg { width:20px; height:20px; }
+  .bottom-nav .nav-item.active { background:transparent; color: var(--gold-light); }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 16px; padding: 28px 0 22px;
+  }
+  .topbar h2 { font-family:'Playfair Display', serif; font-size:24px; font-weight:700; }
+  .topbar .view-sub { font-size:13px; color:var(--text-2); margin-top:4px; }
+
+  .btn-new {
+    display:flex; align-items:center; gap:8px; flex-shrink:0;
+    background: linear-gradient(155deg, var(--gold-light), var(--gold));
+    color:#1A1408; font-weight:600; font-size:14px;
+    border:none; border-radius: 12px; padding:11px 18px; cursor:pointer;
+    box-shadow: 0 6px 18px rgba(212,175,55,0.25);
+    transition: transform .15s ease, box-shadow .15s ease;
+    white-space:nowrap;
+  }
+  .btn-new:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(212,175,55,0.35); }
+  .btn-new svg { width:16px; height:16px; }
+  .link-btn { background:none; border:none; color:var(--gold-light); font-size:12.5px; font-weight:600; cursor:pointer; }
+  .link-btn:hover { text-decoration: underline; }
+
+  /* ── VIEWS ── */
+  .view { display:none; }
+  .view.active { display:block; }
+
+  /* ── generic panel ── */
+  .panel {
+    background: var(--surface); border:1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 20px 20px; margin-bottom: 20px;
+  }
+  .panel-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:10px; }
+  .panel-head h3 { font-size:15px; font-weight:600; color:var(--text); }
+
+  /* ── STAT CARDS ── */
+  .stats-row { display:grid; grid-template-columns: repeat(3, 1fr); gap:14px; margin-bottom:20px; }
+  .stat-card {
+    background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-sm);
+    padding:16px 16px; position:relative; overflow:hidden;
+  }
+  .stat-card::after { content:''; position:absolute; inset:0; background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent 40%); pointer-events:none; }
+  .stat-card .val { font-size:26px; font-weight:700; font-family:'Playfair Display',serif; color:var(--text); line-height:1.1; }
+  .stat-card .lbl { font-size:12px; color:var(--text-2); margin-top:6px; text-transform:uppercase; letter-spacing:0.6px; }
+  .stat-card .sub { font-size:12px; color:var(--text-3); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .stat-card.accent .val { color: var(--gold-light); }
+
+  .delta-chip { font-size:12px; font-weight:700; padding:3px 9px; border-radius:999px; display:inline-flex; align-items:center; gap:3px; }
+  .delta-chip.up { color: var(--success); background: var(--success-bg); }
+  .delta-chip.down { color: var(--danger); background: var(--danger-bg); }
+
+  /* ── GROWTH CHART ── */
+  .chart-wrap { position:relative; height:190px; }
+  .chart-wrap svg { width:100%; height:100%; overflow:visible; }
+  .chart-tick-label { font-size:10.5px; fill: var(--text-3); font-family:'Inter',sans-serif; }
+  .chart-crosshair { stroke: rgba(212,175,55,0.45); stroke-width:1; pointer-events:none; opacity:0; }
+  .chart-hit { fill:transparent; }
+  .chart-tooltip {
+    position:absolute; pointer-events:none; opacity:0; transition: opacity .1s ease;
+    background: var(--surface-2); border:1px solid rgba(212,175,55,0.4); border-radius:10px;
+    padding:8px 11px; font-size:12px; white-space:nowrap; transform: translate(-50%, -110%);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4); z-index:5;
+  }
+  .chart-tooltip .tt-val { font-weight:700; color: var(--gold-light); font-size:14px; }
+  .chart-tooltip .tt-date { color: var(--text-2); font-size:11px; margin-top:1px; }
+
+  /* ── BEST POSTS ROW ── */
+  .best-row { display:grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap:14px; }
+  .best-card { background: var(--surface-2); border:1px solid var(--border); border-radius: var(--radius-sm); overflow:hidden; cursor:pointer; transition: transform .15s ease; }
+  .best-card:hover { transform: translateY(-2px); }
+  .best-card img { width:100%; aspect-ratio: 1/1; object-fit:cover; display:block; }
+  .best-card .bp-body { padding:10px 11px; }
+  .best-card .bp-title { font-size:12.5px; font-weight:600; color:var(--text); display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; }
+  .best-card .bp-likes { display:flex; align-items:center; gap:5px; font-size:11.5px; color: var(--gold-light); margin-top:5px; font-weight:600; }
+  .best-card .bp-likes svg { width:12px; height:12px; }
+
+  /* ── UPCOMING LIST ── */
+  .upcoming-list { display:flex; flex-direction:column; gap:2px; }
+  .upcoming-row { display:flex; align-items:center; gap:12px; padding:10px 4px; border-bottom:1px solid var(--border-soft); cursor:pointer; }
+  .upcoming-row:last-child { border-bottom:none; }
+  .upcoming-row img { width:42px; height:42px; border-radius:9px; object-fit:cover; flex-shrink:0; background:var(--surface-2); }
+  .upcoming-row .ur-title { font-size:13.5px; font-weight:500; color:var(--text); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .upcoming-row .ur-when { font-size:12px; color:var(--text-2); flex-shrink:0; }
+  .empty-mini { padding:20px 4px; text-align:center; color:var(--text-3); font-size:13px; }
+
+  /* ── CONTROLS (Posts) ── */
+  .controls { display:flex; align-items:center; gap:12px; margin-bottom: 22px; flex-wrap: wrap; }
+  .tabs { display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; flex:1; min-width:0; }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tab { flex-shrink:0; display:flex; align-items:center; gap:7px; background: var(--surface); border:1px solid var(--border); color: var(--text-2); font-size:13.5px; font-weight:500; padding:9px 15px; border-radius: 999px; cursor:pointer; transition: all .15s ease; }
+  .tab .count { font-size:11px; font-weight:700; background: rgba(255,255,255,0.08); color:var(--text-2); border-radius:999px; padding:1px 7px; }
+  .tab.active { color:#1A1408; background: linear-gradient(155deg, var(--gold-light), var(--gold)); border-color: transparent; font-weight:600; }
+  .tab.active .count { background: rgba(0,0,0,0.18); color:#2B2308; }
+  .tab:hover:not(.active) { border-color: rgba(212,175,55,0.35); color: var(--text); }
+
+  .search { position:relative; flex-shrink:0; width: 240px; }
+  .search svg { position:absolute; left:13px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--text-3); }
+  .search input { width:100%; background: var(--surface); border:1px solid var(--border); border-radius: 999px; padding:10px 14px 10px 36px; font-size:13.5px; color:var(--text); outline:none; transition: border-color .15s ease; }
+  .search input::placeholder { color: var(--text-3); }
+  .search input:focus { border-color: rgba(212,175,55,0.5); }
+
+  /* ── GRID / CARDS (Posts) ── */
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; padding-bottom: 10px; }
+  .card { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); overflow:hidden; cursor:pointer; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; display:flex; flex-direction:column; }
+  .card:hover { transform: translateY(-3px); border-color: rgba(212,175,55,0.3); box-shadow: 0 14px 30px rgba(0,0,0,0.35); }
+  .card-media { position:relative; aspect-ratio: 4 / 5; background: var(--surface-2); overflow:hidden; }
+  .card-media img { width:100%; height:100%; object-fit:cover; display:block; }
+  .card-media .no-img { width:100%; height:100%; display:flex; align-items:center; justify-content:center; color: var(--text-3); }
+  .card-media .no-img svg { width:38px; height:38px; opacity:.5; }
+  .media-fade { position:absolute; left:0; right:0; bottom:0; height:56px; background: linear-gradient(180deg, transparent, rgba(0,0,0,0.55)); pointer-events:none; }
+  .badge { position:absolute; top:10px; font-size:11px; font-weight:700; letter-spacing:0.3px; padding:5px 10px; border-radius:999px; backdrop-filter: blur(6px); text-transform: uppercase; }
+  .badge-status { right:10px; }
+  .badge.draft     { background: var(--draft-bg);   color: var(--draft);   border:1px solid rgba(166,166,176,0.35); }
+  .badge.ready     { background: var(--gold-dim);   color: var(--gold-light); border:1px solid rgba(212,175,55,0.45); }
+  .badge.published { background: var(--success-bg); color: var(--success); border:1px solid rgba(74,222,128,0.4); }
+  .badge-platform { left:10px; top:10px; width:26px; height:26px; padding:0; border-radius:9px; display:flex; align-items:center; justify-content:center; background: linear-gradient(45deg,#F58529,#DD2A7B,#8134AF,#515BD4); border:none; }
+  .badge-platform svg { width:14px; height:14px; color:#fff; }
+  .card-body { padding:14px 15px 15px; display:flex; flex-direction:column; gap:8px; flex:1; }
+  .card-title { font-size:14.5px; font-weight:600; color:var(--text); line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .card-meta { display:flex; align-items:center; gap:6px; color:var(--text-2); font-size:12.5px; }
+  .card-meta svg { width:13px; height:13px; flex-shrink:0; color: var(--gold); }
+  .card-relative { font-size:11.5px; color: var(--text-3); }
+  .card-footer { display:flex; align-items:center; justify-content:flex-end; gap:4px; margin-top:auto; padding-top:6px; border-top:1px solid var(--border-soft); }
+  .icon-btn { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:transparent; border:none; color:var(--text-3); cursor:pointer; transition: all .15s ease; }
+  .icon-btn svg { width:15px; height:15px; }
+  .icon-btn:hover { background: rgba(255,255,255,0.06); color: var(--gold-light); }
+  .icon-btn.danger:hover { background: rgba(229,72,77,0.12); color: var(--danger); }
+
+  /* ── EMPTY STATE ── */
+  .empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 60px 20px; text-align:center; gap:14px; color: var(--text-2); }
+  .empty[hidden] { display:none; }
+  .empty .ring { width:60px; height:60px; border-radius:50%; background: var(--gold-dim); display:flex; align-items:center; justify-content:center; }
+  .empty .ring svg { width:26px; height:26px; color: var(--gold); }
+  .empty h3 { color: var(--text); font-size:15.5px; font-weight:600; font-family:'Playfair Display',serif; }
+  .empty p { font-size:13.5px; max-width:280px; }
+
+  /* ── CALENDAR ── */
+  .cal-nav { display:flex; align-items:center; gap:10px; }
+  .cal-nav-btn { width:34px; height:34px; border-radius:9px; background:var(--surface-2); border:1px solid var(--border); color:var(--text-2); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .cal-nav-btn:hover { color: var(--gold-light); border-color: rgba(212,175,55,0.35); }
+  .cal-nav-btn svg { width:16px; height:16px; }
+  .cal-month-label { font-size:15px; font-weight:600; min-width:130px; text-align:center; font-family:'Playfair Display',serif; }
+  .btn-today { background: var(--surface-2); border:1px solid var(--border); color:var(--text-2); font-size:12.5px; font-weight:600; padding:8px 13px; border-radius:9px; cursor:pointer; }
+  .btn-today:hover { color:var(--gold-light); border-color: rgba(212,175,55,0.35); }
+
+  .cal-weekdays { display:grid; grid-template-columns: repeat(7,1fr); gap:6px; margin-bottom:6px; }
+  .cal-weekdays span { text-align:center; font-size:11px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:0.4px; padding:4px 0; }
+  .cal-grid { display:grid; grid-template-columns: repeat(7,1fr); gap:6px; }
+  .cal-day {
+    aspect-ratio: 1/1; min-height:44px;
+    background: var(--surface-2); border:1px solid var(--border-soft); border-radius:10px;
+    padding:6px 5px; cursor:pointer; display:flex; flex-direction:column; gap:4px;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .cal-day:hover { border-color: rgba(212,175,55,0.3); }
+  .cal-day.muted { opacity:0.35; pointer-events:none; }
+  .cal-day.today { border-color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold); }
+  .cal-day.selected { background: var(--gold-dim); border-color: rgba(212,175,55,0.5); }
+  .cal-daynum { font-size:12.5px; font-weight:600; color: var(--text-2); }
+  .cal-day.today .cal-daynum { color: var(--gold-light); }
+  .cal-dots { display:flex; gap:3px; flex-wrap:wrap; align-items:center; }
+  .cal-dot { width:6px; height:6px; border-radius:50%; }
+  .cal-dot.draft { background: var(--draft); }
+  .cal-dot.ready { background: var(--gold); }
+  .cal-dot.published { background: var(--success); }
+  .cal-more { font-size:9.5px; color: var(--text-3); font-weight:600; }
+
+  .day-panel-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .day-panel-head h3 { font-size:15px; font-weight:600; font-family:'Playfair Display',serif; }
+  .day-row { display:flex; align-items:center; gap:12px; padding:10px 8px; border-radius:10px; cursor:pointer; transition: background .15s ease; }
+  .day-row:hover { background: rgba(255,255,255,0.04); }
+  .day-row img { width:44px; height:44px; border-radius:9px; object-fit:cover; flex-shrink:0; background: var(--surface-2); }
+  .day-row .dr-body { flex:1; min-width:0; }
+  .day-row .dr-title { font-size:13.5px; font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .day-row .dr-time { font-size:12px; color:var(--text-2); margin-top:2px; }
+
+  /* ── IDEAS ── */
+  .ideas-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(230px,1fr)); gap:16px; }
+  .idea-card { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-sm); padding:16px; display:flex; flex-direction:column; gap:12px; position:relative; }
+  .idea-tag { align-self:flex-start; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color: var(--gold-light); background: var(--gold-dim); padding:4px 10px; border-radius:999px; }
+  .idea-text { font-size:14px; color: var(--text); line-height:1.5; flex:1; white-space:pre-wrap; }
+  .idea-foot { display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--border-soft); padding-top:10px; }
+  .idea-date { font-size:11.5px; color:var(--text-3); }
+  .idea-actions { display:flex; gap:2px; }
+
+  /* ── METRICS ── */
+  .metrics-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap:18px; }
+  .metric-card { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:20px; }
+  .metric-head { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .metric-icon { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .metric-icon svg { width:21px; height:21px; color:#fff; }
+  .metric-name { font-size:14.5px; font-weight:600; color:var(--text); }
+  .metric-followers-lbl { font-size:11.5px; color:var(--text-2); }
+  .metric-figure-row { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:16px; }
+  .metric-figure { font-size:32px; font-weight:700; font-family:'Playfair Display',serif; color:var(--text); line-height:1; }
+  .metric-spark { flex-shrink:0; }
+  .metric-secondary { display:grid; grid-template-columns: repeat(3,1fr); gap:8px; border-top:1px solid var(--border-soft); padding-top:14px; }
+  .metric-secondary .ms-item { text-align:left; }
+  .metric-secondary .ms-val { font-size:14.5px; font-weight:700; color:var(--text); }
+  .metric-secondary .ms-lbl { font-size:10.5px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.4px; margin-top:2px; }
+
+  /* ── FAB ── */
+  .fab { position: fixed; right:20px; bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); width:56px; height:56px; border-radius:50%; background: linear-gradient(155deg, var(--gold-light), var(--gold)); border:none; color:#1A1408; display:none; align-items:center; justify-content:center; box-shadow: 0 10px 26px rgba(212,175,55,0.4); cursor:pointer; z-index: 65; }
+  .fab svg { width:24px; height:24px; }
+
+  /* ── MODAL ── */
+  .modal-overlay { position:fixed; inset:0; z-index:100; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); display:none; align-items:flex-end; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background: var(--surface); border:1px solid var(--border); border-radius: 22px 22px 0 0; width:100%; max-width:520px; max-height: 92vh; overflow-y:auto; padding: 22px 22px calc(env(safe-area-inset-bottom,0px) + 22px); animation: slideUp .25s ease; }
+  @media (min-width: 720px) { .modal-overlay { align-items:center; } .modal { border-radius: 22px; } }
+  @keyframes slideUp { from { transform: translateY(24px); opacity:0; } to { transform:none; opacity:1; } }
+  .modal-handle { width:38px; height:4px; border-radius:99px; background: var(--border); margin:0 auto 18px; }
+  .modal h2 { font-family:'Playfair Display', serif; font-size:19px; margin-bottom:18px; }
+  .field { margin-bottom:14px; }
+  .field label { display:block; font-size:12.5px; color:var(--text-2); margin-bottom:6px; font-weight:500; }
+  .field input, .field textarea, .field select { width:100%; background: var(--surface-2); border:1px solid var(--border); border-radius: 10px; padding:11px 13px; color:var(--text); font-size:14px; outline:none; font-family:inherit; transition: border-color .15s ease; }
+  .field input:focus, .field textarea:focus, .field select:focus { border-color: rgba(212,175,55,0.55); }
+  .field textarea { resize:vertical; min-height:70px; }
+  .field-row { display:flex; gap:12px; }
+  .field-row .field { flex:1; }
+  .status-picker { display:flex; gap:8px; }
+  .status-opt { flex:1; text-align:center; padding:10px 6px; border-radius:10px; border:1px solid var(--border); font-size:12.5px; font-weight:600; cursor:pointer; color: var(--text-2); transition: all .15s ease; }
+  .status-opt.sel-draft.active { background: var(--draft-bg); border-color: rgba(166,166,176,0.5); color: var(--draft); }
+  .status-opt.sel-ready.active { background: var(--gold-dim); border-color: rgba(212,175,55,0.5); color: var(--gold-light); }
+  .status-opt.sel-published.active { background: var(--success-bg); border-color: rgba(74,222,128,0.5); color: var(--success); }
+  .modal-actions { display:flex; gap:10px; margin-top:20px; }
+  .btn { flex:1; padding:13px; border-radius:12px; border:none; font-size:14.5px; font-weight:600; cursor:pointer; transition: transform .15s ease; }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: linear-gradient(155deg, var(--gold-light), var(--gold)); color:#1A1408; }
+  .btn-ghost { background: var(--surface-2); color: var(--text-2); border:1px solid var(--border); }
+  .btn-delete { background: rgba(229,72,77,0.12); color: var(--danger); border:1px solid rgba(229,72,77,0.3); flex:none; padding:13px 16px; }
+
+  /* ── TOAST ── */
+  .toast { position: fixed; left:50%; bottom: 28px; transform: translateX(-50%) translateY(20px); background: #1D1D22; border:1px solid rgba(212,175,55,0.4); color: var(--text); font-size:13.5px; font-weight:500; padding:12px 20px; border-radius:12px; opacity:0; pointer-events:none; transition: all .25s ease; z-index:200; white-space:nowrap; box-shadow: 0 10px 26px rgba(0,0,0,0.4); display:flex; align-items:center; gap:8px; }
+  .toast svg { width:15px; height:15px; color: var(--gold); flex-shrink:0; }
+  .toast.show { opacity:1; transform: translateX(-50%) translateY(0); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .sidebar { display:none; }
+    .bottom-nav { display:flex; }
+    .app { padding: 0 16px 90px; }
+    .fab { display:flex; bottom: calc(env(safe-area-inset-bottom, 0px) + 82px); }
+  }
+  @media (max-width: 720px) {
+    .stats-row { grid-template-columns: repeat(3,1fr); gap:8px; }
+    .stat-card { padding:12px 10px; }
+    .stat-card .val { font-size:19px; }
+    .stat-card .lbl { font-size:9.5px; }
+    .btn-new span.full { display:none; }
+    .btn-new { padding:11px 14px; }
+    .controls { flex-direction:column; align-items:stretch; }
+    .tabs { width:100%; max-width:100%; }
+    .search { width:100%; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap:14px; }
+    .card-body { padding:11px 12px 12px; gap:6px; }
+    .card-title { font-size:13.5px; }
+    .cal-day { min-height:38px; padding:5px 4px; }
+    .metrics-grid { grid-template-columns: 1fr; }
+    .metric-secondary { grid-template-columns: repeat(3,1fr); }
+  }
+  @media (max-width: 420px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1A1408" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 9h18"></path><path d="M8 5v4"></path></svg>
+      </div>
+      <div class="brand-text"><h1>Áurea</h1><p>Panel de contenido</p></div>
+    </div>
+    <div class="nav-list">
+      <button class="nav-item" data-view="overview" onclick="goToView('overview')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"></path><path d="M5 10v10h14V10"></path></svg>
+        Panel principal
+      </button>
+      <button class="nav-item" data-view="posts" onclick="goToView('posts')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+        Publicaciones
+      </button>
+      <button class="nav-item" data-view="calendar" onclick="goToView('calendar')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg>
+        Calendario
+      </button>
+      <button class="nav-item" data-view="ideas" onclick="goToView('ideas')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4"></path><path d="M12 2a7 7 0 00-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0012 2z"></path></svg>
+        Ideas
+      </button>
+      <button class="nav-item" data-view="metrics" onclick="goToView('metrics')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"></path><rect x="7" y="12" width="3" height="6"></rect><rect x="13" y="8" width="3" height="10"></rect><rect x="19" y="5" width="0" height="13"></rect><path d="M13 8h3v10"></path></svg>
+        Métricas
+      </button>
+    </div>
+    <div class="sidebar-foot">joselrz@gmail.com</div>
+  </nav>
+
+  <div class="main">
+    <div class="app">
+
+      <!-- OVERVIEW -->
+      <section class="view" id="view-overview">
+        <div class="topbar">
+          <div>
+            <h2>Panel principal</h2>
+            <p class="view-sub" id="todayLabel"></p>
+          </div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-card accent"><div class="val" id="ovWeekCount">0</div><div class="lbl">Posts esta semana</div></div>
+          <div class="stat-card"><div class="val" id="ovFollowers">0</div><div class="lbl">Seguidores totales</div></div>
+          <div class="stat-card"><div class="val" id="ovBestLikes">0</div><div class="lbl">Mejor publicación</div><div class="sub" id="ovBestTitle"></div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Crecimiento de seguidores</h3>
+            <span class="delta-chip" id="chartDelta"></span>
+          </div>
+          <div class="chart-wrap" id="growthChart"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Mejores publicaciones</h3></div>
+          <div class="best-row" id="bestPosts"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Próximas publicaciones</h3>
+            <button class="link-btn" onclick="goToView('calendar')">Ver calendario →</button>
+          </div>
+          <div class="upcoming-list" id="upcomingList"></div>
+        </div>
+      </section>
+
+      <!-- POSTS -->
+      <section class="view" id="view-posts">
+        <div class="topbar">
+          <div><h2>Publicaciones</h2><p class="view-sub">Todo tu contenido programado para Instagram</p></div>
+          <button class="btn-new" onclick="openModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+            <span class="full">Nueva publicación</span>
+          </button>
+        </div>
+
+        <div class="controls">
+          <div class="tabs" id="tabs"></div>
+          <div class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+            <input type="text" id="searchInput" placeholder="Buscar publicación...">
+          </div>
+        </div>
+
+        <main class="grid" id="grid"></main>
+
+        <div class="empty" id="empty" hidden>
+          <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="4"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 15l-5-5L5 21"></path></svg></div>
+          <h3>Sin publicaciones aquí</h3>
+          <p>No hay contenido que coincida con este filtro o búsqueda. Crea una nueva publicación para empezar.</p>
+        </div>
+      </section>
+
+      <!-- CALENDAR -->
+      <section class="view" id="view-calendar">
+        <div class="topbar">
+          <div><h2>Calendario</h2><p class="view-sub">Vista mensual de tu contenido programado</p></div>
+          <button class="btn-new" onclick="openModal(null, {date: selectedDay})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+            <span class="full">Nueva publicación</span>
+          </button>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="cal-nav">
+              <button class="cal-nav-btn" onclick="calShift(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"></path></svg></button>
+              <span class="cal-month-label" id="calMonthLabel"></span>
+              <button class="cal-nav-btn" onclick="calShift(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"></path></svg></button>
+            </div>
+            <button class="btn-today" onclick="calToday()">Hoy</button>
+          </div>
+          <div class="cal-weekdays"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+
+        <div class="panel">
+          <div class="day-panel-head">
+            <h3 id="dayPanelLabel">Hoy</h3>
+          </div>
+          <div id="dayPanelList"></div>
+        </div>
+      </section>
+
+      <!-- IDEAS -->
+      <section class="view" id="view-ideas">
+        <div class="topbar">
+          <div><h2>Ideas</h2><p class="view-sub">Guarda ideas rápidas para futuros contenidos</p></div>
+          <button class="btn-new" onclick="openIdeaModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+            <span class="full">Nueva idea</span>
+          </button>
+        </div>
+        <div class="ideas-grid" id="ideasGrid"></div>
+        <div class="empty" id="emptyIdeas" hidden>
+          <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18h6M10 22h4"></path><path d="M12 2a7 7 0 00-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0012 2z"></path></svg></div>
+          <h3>Todavía no hay ideas</h3>
+          <p>Anota cualquier idea de contenido que se te ocurra para no perderla.</p>
+        </div>
+      </section>
+
+      <!-- METRICS -->
+      <section class="view" id="view-metrics">
+        <div class="topbar">
+          <div><h2>Métricas</h2><p class="view-sub">El rendimiento de cada red social, de un vistazo</p></div>
+        </div>
+        <div class="metrics-grid" id="metricsGrid"></div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-item" data-view="overview" onclick="goToView('overview')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"></path><path d="M5 10v10h14V10"></path></svg>Panel
+  </button>
+  <button class="nav-item" data-view="posts" onclick="goToView('posts')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>Posts
+  </button>
+  <button class="nav-item" data-view="calendar" onclick="goToView('calendar')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg>Calendario
+  </button>
+  <button class="nav-item" data-view="ideas" onclick="goToView('ideas')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4"></path><path d="M12 2a7 7 0 00-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0012 2z"></path></svg>Ideas
+  </button>
+  <button class="nav-item" data-view="metrics" onclick="goToView('metrics')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"></path><path d="M7 16v-4M12 16V8M17 16v-7"></path></svg>Métricas
+  </button>
+</nav>
+
+<button class="fab" id="fabBtn" onclick="fabAction()" aria-label="Añadir">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+</button>
+
+<!-- POST MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2 id="modalTitle">Nueva publicación</h2>
+    <form id="postForm">
+      <input type="hidden" id="postId">
+      <div class="field"><label>URL de la imagen</label><input type="url" id="postImage" placeholder="https://..." required></div>
+      <div class="field"><label>Título</label><input type="text" id="postTitle" placeholder="Ej. Lanzamiento colección verano" required></div>
+      <div class="field"><label>Descripción / caption</label><textarea id="postCaption" placeholder="Escribe el pie de foto..."></textarea></div>
+      <div class="field-row">
+        <div class="field"><label>Fecha programada</label><input type="date" id="postDate" required></div>
+        <div class="field"><label>Hora</label><input type="time" id="postTime" required></div>
+      </div>
+      <div class="field">
+        <label>Estado</label>
+        <div class="status-picker" id="statusPicker">
+          <div class="status-opt sel-draft" data-status="draft">Borrador</div>
+          <div class="status-opt sel-ready" data-status="ready">Listo</div>
+          <div class="status-opt sel-published" data-status="published">Publicado</div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-delete" id="deleteBtn" hidden>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"></path></svg>
+        </button>
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- IDEA MODAL -->
+<div class="modal-overlay" id="ideaModalOverlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2 id="ideaModalTitle">Nueva idea</h2>
+    <form id="ideaForm">
+      <input type="hidden" id="ideaId">
+      <div class="field"><label>Idea</label><textarea id="ideaText" placeholder="Ej. Reel mostrando el proceso de empaquetado..." required></textarea></div>
+      <div class="field">
+        <label>Tipo de contenido</label>
+        <select id="ideaTag">
+          <option value="Reel">Reel</option>
+          <option value="Carrusel">Carrusel</option>
+          <option value="Historia">Historia</option>
+          <option value="Foto">Foto</option>
+          <option value="Tendencia">Tendencia</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-delete" id="ideaDeleteBtn" hidden>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"></path></svg>
+        </button>
+        <button type="button" class="btn btn-ghost" onclick="closeIdeaModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ==================== STATE & STORAGE ==================== */
+const STORAGE_KEY = 'aurea_posts_v1';
+const IDEAS_KEY = 'aurea_ideas_v1';
+const FOLLOWERS_KEY = 'aurea_followers_v1';
+const METRICS_KEY = 'aurea_metrics_v1';
+
+function addDays(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+function todayStr() { return addDays(0); }
+
+function placeholderImg(seed) {
+  const hues = [42, 36, 48, 30, 45, 38, 50, 33];
+  const h = hues[seed % hues.length];
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='480' height='600'>
+    <defs>
+      <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+        <stop offset='0%' stop-color='hsl(${h},35%,18%)'/>
+        <stop offset='100%' stop-color='hsl(${h},55%,8%)'/>
+      </linearGradient>
+      <radialGradient id='r' cx='50%' cy='30%' r='70%'>
+        <stop offset='0%' stop-color='hsl(${h},70%,55%)' stop-opacity='0.35'/>
+        <stop offset='100%' stop-color='hsl(${h},70%,55%)' stop-opacity='0'/>
+      </radialGradient>
+    </defs>
+    <rect width='480' height='600' fill='url(#g)'/>
+    <rect width='480' height='600' fill='url(#r)'/>
+    <circle cx='240' cy='300' r='46' fill='none' stroke='hsl(${h},70%,65%)' stroke-opacity='0.55' stroke-width='2'/>
+    <circle cx='240' cy='300' r='16' fill='hsl(${h},70%,65%)' fill-opacity='0.55'/>
+  </svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+
+const seedPosts = [
+  { id: crypto.randomUUID(), title: 'Lanzamiento colección Verano', caption: 'Nueva colección disponible desde hoy ☀️', image: placeholderImg(1), date: addDays(0), time: '18:30', status: 'ready', likes: 0 },
+  { id: crypto.randomUUID(), title: 'Detrás de cámaras — sesión de fotos', caption: 'Un vistazo al proceso creativo del equipo', image: placeholderImg(2), date: addDays(1), time: '12:00', status: 'draft', likes: 0 },
+  { id: crypto.randomUUID(), title: 'Testimonio de cliente', caption: 'Gracias por confiar en nosotros 💛', image: placeholderImg(3), date: addDays(-2), time: '09:15', status: 'published', likes: 842 },
+  { id: crypto.randomUUID(), title: 'Tips de estilo para la temporada', caption: '5 formas de combinar tus piezas favoritas', image: placeholderImg(4), date: addDays(3), time: '20:00', status: 'draft', likes: 0 },
+  { id: crypto.randomUUID(), title: 'Anuncio de colaboración', caption: 'Se viene algo especial con @studio', image: placeholderImg(5), date: addDays(5), time: '16:45', status: 'ready', likes: 0 },
+  { id: crypto.randomUUID(), title: 'Reel: proceso de producción', caption: 'De la idea al producto final', image: placeholderImg(6), date: addDays(-5), time: '11:00', status: 'published', likes: 1204 },
+  { id: crypto.randomUUID(), title: 'Receta con producto propio', caption: 'Así lo preparamos en casa', image: placeholderImg(7), date: addDays(-8), time: '13:30', status: 'published', likes: 613 },
+  { id: crypto.randomUUID(), title: 'Encuesta a la comunidad', caption: '¿Qué te gustaría ver en el próximo lanzamiento?', image: placeholderImg(8), date: addDays(2), time: '10:00', status: 'ready', likes: 0 },
+];
+
+const seedIdeas = [
+  { id: crypto.randomUUID(), text: 'Mini-serie de 3 reels mostrando el proceso completo, del campo a la mesa.', tag: 'Reel', createdAt: addDays(-3) },
+  { id: crypto.randomUUID(), text: 'Carrusel comparando antes/después de un cliente real usando el producto.', tag: 'Carrusel', createdAt: addDays(-1) },
+  { id: crypto.randomUUID(), text: 'Aprovechar el sonido en tendencia de esta semana para un reel divertido del equipo.', tag: 'Tendencia', createdAt: addDays(0) },
+];
+
+function generateFollowerHistory() {
+  const days = 14;
+  let val = 24100;
+  const arr = [];
+  for (let i = days - 1; i >= 0; i--) {
+    val += Math.round(20 + Math.random() * 60);
+    arr.push({ date: addDays(-i), value: val });
+  }
+  return arr;
+}
+
+function generateSparkline(base, points = 12) {
+  let v = base;
+  const arr = [];
+  for (let i = 0; i < points; i++) {
+    v += Math.round((Math.random() - 0.3) * base * 0.02);
+    arr.push(Math.max(1, v));
+  }
+  return arr;
+}
+
+const seedMetrics = [
+  { id: 'instagram', name: 'Instagram', followers: 24800, delta: 4.2, engagement: '3.8%', reach: '18.2K', interactions: '2.1K', color: 'linear-gradient(45deg,#F58529,#DD2A7B,#8134AF,#515BD4)', spark: generateSparkline(24800) },
+  { id: 'tiktok', name: 'TikTok', followers: 41200, delta: 9.1, engagement: '6.5%', reach: '52.4K', interactions: '5.8K', color: 'linear-gradient(155deg,#25F4EE,#111 55%,#FE2C55)', spark: generateSparkline(41200) },
+  { id: 'facebook', name: 'Facebook', followers: 9800, delta: -1.3, engagement: '1.4%', reach: '6.9K', interactions: '540', color: 'linear-gradient(155deg,#1877F2,#0C4EA6)', spark: generateSparkline(9800) },
+  { id: 'youtube', name: 'YouTube', followers: 6400, delta: 2.7, engagement: '2.9%', reach: '12.1K', interactions: '980', color: 'linear-gradient(155deg,#FF0000,#8A0000)', spark: generateSparkline(6400) },
+];
+
+function loadJSON(key, seed) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  localStorage.setItem(key, JSON.stringify(seed));
+  return seed;
+}
+function saveJSON(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+let posts = loadJSON(STORAGE_KEY, seedPosts);
+let ideas = loadJSON(IDEAS_KEY, seedIdeas);
+let followerHistory = loadJSON(FOLLOWERS_KEY, generateFollowerHistory());
+let metrics = loadJSON(METRICS_KEY, seedMetrics);
+
+function savePosts() { saveJSON(STORAGE_KEY, posts); }
+function saveIdeas() { saveJSON(IDEAS_KEY, ideas); }
+
+let currentView = 'overview';
+let activeFilter = 'all';
+let searchTerm = '';
+let calMonth = new Date(); calMonth.setDate(1);
+let selectedDay = todayStr();
+
+const statusLabels = { draft: 'Borrador', ready: 'Listo', published: 'Publicado' };
+
+/* ==================== HELPERS ==================== */
+function escapeHtml(str) {
+  return (str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function escapeAttr(str) { return escapeHtml(str); }
+
+function relativeLabel(dateStr) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = new Date(dateStr + 'T00:00:00');
+  const diff = Math.round((d - today) / 86400000);
+  if (diff === 0) return 'Hoy';
+  if (diff === 1) return 'Mañana';
+  if (diff === -1) return 'Ayer';
+  if (diff > 1 && diff <= 6) return `En ${diff} días`;
+  if (diff < -1 && diff >= -6) return `Hace ${Math.abs(diff)} días`;
+  return '';
+}
+function formatDate(dateStr, opts) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('es-ES', opts || { day: 'numeric', month: 'short' });
+}
+function compactNumber(n) {
+  if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '') + 'K';
+  return String(n);
+}
+function iconInstagram() {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"></circle></svg>`;
+}
+function iconHeart() {
+  return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.1 2 4.5 5.6 4c2-.3 3.8.7 4.9 2.3 1.1-1.6 2.9-2.6 4.9-2.3 3.6.5 5.2 4.1 3.6 7.7C19.5 16.4 12 21 12 21z"/></svg>`;
+}
+function getWeekRange(ref) {
+  const d = new Date(ref); d.setHours(0,0,0,0);
+  const day = (d.getDay() + 6) % 7; // Monday = 0
+  const monday = new Date(d); monday.setDate(d.getDate() - day);
+  const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+  return [monday, sunday];
+}
+
+/* ==================== NAV ==================== */
+function goToView(view) {
+  currentView = view;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  document.querySelectorAll('[data-view]').forEach(el => el.classList.toggle('active', el.dataset.view === view));
+  document.getElementById('fabBtn').style.display = (view === 'posts' || view === 'calendar' || view === 'ideas') ? 'flex' : 'none';
+  window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+  renderCurrentView();
+}
+function fabAction() {
+  if (currentView === 'ideas') openIdeaModal();
+  else if (currentView === 'calendar') openModal(null, { date: selectedDay });
+  else openModal();
+}
+function renderCurrentView() {
+  if (currentView === 'overview') renderOverview();
+  else if (currentView === 'posts') renderPostsView();
+  else if (currentView === 'calendar') renderCalendar();
+  else if (currentView === 'ideas') renderIdeas();
+  else if (currentView === 'metrics') renderMetrics();
+}
+
+/* ==================== OVERVIEW ==================== */
+function renderOverview() {
+  const today = new Date();
+  document.getElementById('todayLabel').textContent = today.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  const [mon, sun] = getWeekRange(today);
+  const weekCount = posts.filter(p => {
+    const d = new Date(p.date + 'T00:00:00');
+    return d >= mon && d <= sun;
+  }).length;
+  document.getElementById('ovWeekCount').textContent = weekCount;
+
+  const totalFollowers = metrics.reduce((s, m) => s + m.followers, 0);
+  document.getElementById('ovFollowers').textContent = compactNumber(totalFollowers);
+
+  const best = posts.filter(p => p.status === 'published').sort((a, b) => b.likes - a.likes)[0];
+  document.getElementById('ovBestLikes').textContent = best ? compactNumber(best.likes) : '—';
+  document.getElementById('ovBestTitle').textContent = best ? best.title : 'Sin publicaciones aún';
+
+  const hist = followerHistory;
+  const first = hist[0].value, last = hist[hist.length - 1].value;
+  const pct = (((last - first) / first) * 100).toFixed(1);
+  const deltaEl = document.getElementById('chartDelta');
+  deltaEl.textContent = (pct >= 0 ? '▲ ' : '▼ ') + Math.abs(pct) + '% (14 días)';
+  deltaEl.className = 'delta-chip ' + (pct >= 0 ? 'up' : 'down');
+  buildGrowthChart(document.getElementById('growthChart'), hist);
+
+  const bestPosts = posts.filter(p => p.status === 'published').sort((a, b) => b.likes - a.likes).slice(0, 3);
+  document.getElementById('bestPosts').innerHTML = bestPosts.length ? bestPosts.map(p => `
+    <div class="best-card" onclick="openModal('${p.id}')">
+      <img src="${escapeAttr(p.image)}" alt="" loading="lazy">
+      <div class="bp-body">
+        <div class="bp-title">${escapeHtml(p.title)}</div>
+        <div class="bp-likes">${iconHeart()} ${compactNumber(p.likes)}</div>
+      </div>
+    </div>
+  `).join('') : '<div class="empty-mini">Aún no tienes publicaciones marcadas como publicadas.</div>';
+
+  const upcoming = posts.filter(p => p.date >= todayStr()).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)).slice(0, 5);
+  document.getElementById('upcomingList').innerHTML = upcoming.length ? upcoming.map(p => `
+    <div class="upcoming-row" onclick="openModal('${p.id}')">
+      <img src="${escapeAttr(p.image)}" alt="" loading="lazy">
+      <div class="ur-title">${escapeHtml(p.title)}</div>
+      <div class="ur-when">${formatDate(p.date)} · ${p.time}</div>
+    </div>
+  `).join('') : '<div class="empty-mini">No hay publicaciones próximas programadas.</div>';
+}
+
+/* ── growth chart (single series line + area, per dataviz spec) ── */
+function buildGrowthChart(container, data) {
+  const W = 600, H = 190, PAD_L = 34, PAD_R = 10, PAD_T = 16, PAD_B = 22;
+  const values = data.map(d => d.value);
+  const min = Math.min(...values), max = Math.max(...values);
+  const range = (max - min) || 1;
+  const plotW = W - PAD_L - PAD_R, plotH = H - PAD_T - PAD_B;
+
+  const x = i => PAD_L + (i / (data.length - 1)) * plotW;
+  const y = v => PAD_T + plotH - ((v - min) / range) * plotH;
+
+  const linePoints = data.map((d, i) => `${x(i)},${y(d.value)}`).join(' ');
+  const areaPoints = `${x(0)},${PAD_T + plotH} ${linePoints} ${x(data.length - 1)},${PAD_T + plotH}`;
+
+  const ticks = [min, min + range / 2, max];
+  const gridSvg = ticks.map(t => `
+    <line x1="${PAD_L}" x2="${W - PAD_R}" y1="${y(t)}" y2="${y(t)}" stroke="rgba(255,255,255,0.06)" stroke-width="1"></line>
+    <text x="2" y="${y(t) + 3}" class="chart-tick-label">${compactNumber(Math.round(t))}</text>
+  `).join('');
+
+  const last = data[data.length - 1];
+  const endX = x(data.length - 1), endY = y(last.value);
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      ${gridSvg}
+      <polyline points="${areaPoints}" fill="rgba(212,175,55,0.10)" stroke="none"></polyline>
+      <polyline points="${linePoints}" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>
+      <circle cx="${endX}" cy="${endY}" r="4" fill="#D4AF37" stroke="#17171B" stroke-width="2"></circle>
+      <text x="${Math.min(endX - 4, W - 40)}" y="${Math.max(endY - 12, 12)}" text-anchor="end" font-size="12" font-weight="700" fill="#F0D584">${compactNumber(last.value)}</text>
+      <line class="chart-crosshair" id="chartCrosshair" x1="0" x2="0" y1="${PAD_T}" y2="${PAD_T + plotH}"></line>
+      <rect class="chart-hit" x="0" y="0" width="${W}" height="${H}" onpointermove="chartHover(event, this)" onpointerleave="chartLeave()"></rect>
+    </svg>
+    <div class="chart-tooltip" id="chartTooltip"></div>
+  `;
+  container._chartData = data;
+  container._chartGeom = { W, H, PAD_L, PAD_R, x, y };
+}
+
+function chartHover(evt, rectEl) {
+  const container = evt.currentTarget.closest('.chart-wrap');
+  const data = container._chartData;
+  const { W, PAD_L, x } = container._chartGeom;
+  const bbox = rectEl.getBoundingClientRect();
+  const relX = (evt.clientX - bbox.left) / bbox.width;
+  const svgX = relX * W;
+  let idx = 0, best = Infinity;
+  data.forEach((d, i) => { const dist = Math.abs(x(i) - svgX); if (dist < best) { best = dist; idx = i; } });
+
+  const crosshair = document.getElementById('chartCrosshair');
+  crosshair.setAttribute('x1', x(idx)); crosshair.setAttribute('x2', x(idx)); crosshair.style.opacity = 1;
+
+  const tooltip = document.getElementById('chartTooltip');
+  const d = data[idx];
+  tooltip.innerHTML = `<div class="tt-val">${d.value.toLocaleString('es-ES')}</div><div class="tt-date">${formatDate(d.date, { day:'numeric', month:'short', weekday:'short' })}</div>`;
+  tooltip.style.left = (relX * bbox.width) + 'px';
+  tooltip.style.top = '0px';
+  tooltip.style.opacity = 1;
+}
+function chartLeave() {
+  const c = document.getElementById('chartCrosshair'); if (c) c.style.opacity = 0;
+  const t = document.getElementById('chartTooltip'); if (t) t.style.opacity = 0;
+}
+
+/* ==================== POSTS VIEW ==================== */
+function renderPostsView() { renderTabs(); renderGrid(); }
+
+function renderTabs() {
+  const total = posts.length;
+  const counts = {
+    all: total,
+    draft: posts.filter(p => p.status === 'draft').length,
+    ready: posts.filter(p => p.status === 'ready').length,
+    published: posts.filter(p => p.status === 'published').length,
+  };
+  const tabs = [
+    { key: 'all', label: 'Todos' }, { key: 'draft', label: 'Borrador' },
+    { key: 'ready', label: 'Listo' }, { key: 'published', label: 'Publicado' },
+  ];
+  document.getElementById('tabs').innerHTML = tabs.map(t => `
+    <button class="tab ${activeFilter === t.key ? 'active' : ''}" onclick="setFilter('${t.key}')">${t.label} <span class="count">${counts[t.key]}</span></button>
+  `).join('');
+}
+function setFilter(key) { activeFilter = key; renderGrid(); }
+
+function renderGrid() {
+  let filtered = posts.filter(p => activeFilter === 'all' || p.status === activeFilter);
+  if (searchTerm.trim()) {
+    const q = searchTerm.toLowerCase();
+    filtered = filtered.filter(p => p.title.toLowerCase().includes(q) || (p.caption || '').toLowerCase().includes(q));
+  }
+  filtered.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('empty');
+  if (filtered.length === 0) { grid.innerHTML = ''; empty.hidden = false; return; }
+  empty.hidden = true;
+
+  grid.innerHTML = filtered.map(p => {
+    const rel = relativeLabel(p.date);
+    return `
+    <div class="card" onclick="openModal('${p.id}')">
+      <div class="card-media">
+        ${p.image
+          ? `<img src="${escapeAttr(p.image)}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-img\\'><svg viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'1.5\\'><rect x=\\'3\\' y=\\'3\\' width=\\'18\\' height=\\'18\\' rx=\\'3\\'></rect><circle cx=\\'8.5\\' cy=\\'8.5\\' r=\\'1.5\\'></circle><path d=\\'M21 15l-5-5L5 21\\'></path></svg></div>'">`
+          : `<div class="no-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg></div>`
+        }
+        <div class="media-fade"></div>
+        <div class="badge badge-platform">${iconInstagram()}</div>
+        <div class="badge badge-status ${p.status}">${statusLabels[p.status]}</div>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${escapeHtml(p.title)}</div>
+        <div class="card-meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg>
+          ${formatDate(p.date)} &middot; ${p.time}
+        </div>
+        ${rel ? `<div class="card-relative">${rel}</div>` : ''}
+        <div class="card-footer" onclick="event.stopPropagation()">
+          <button class="icon-btn" onclick="openModal('${p.id}')" aria-label="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"></path></svg></button>
+          <button class="icon-btn danger" onclick="deletePost('${p.id}')" aria-label="Eliminar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"></path></svg></button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('searchInput').addEventListener('input', (e) => { searchTerm = e.target.value; renderGrid(); });
+
+/* ==================== CALENDAR ==================== */
+function calShift(n) { calMonth.setMonth(calMonth.getMonth() + n); renderCalendar(); }
+function calToday() { calMonth = new Date(); calMonth.setDate(1); selectedDay = todayStr(); renderCalendar(); }
+
+function renderCalendar() {
+  const monthLabel = calMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+  document.getElementById('calMonthLabel').textContent = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
+
+  const year = calMonth.getFullYear(), month = calMonth.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const leading = (firstDay.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+  const cells = [];
+  for (let i = leading - 1; i >= 0; i--) cells.push({ day: daysInPrevMonth - i, other: true });
+  for (let d = 1; d <= daysInMonth; d++) cells.push({ day: d, other: false });
+  while (cells.length % 7 !== 0 || cells.length < 42) cells.push({ day: cells.length - leading - daysInMonth + 1, other: true });
+
+  const today = todayStr();
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = cells.map(c => {
+    const cellDate = c.other
+      ? (cells.indexOf(c) < leading ? new Date(year, month - 1, c.day) : new Date(year, month + 1, c.day))
+      : new Date(year, month, c.day);
+    const dateStr = cellDate.toISOString().slice(0, 10);
+    const dayPosts = posts.filter(p => p.date === dateStr);
+    const dots = dayPosts.slice(0, 3).map(p => `<span class="cal-dot ${p.status}"></span>`).join('');
+    const more = dayPosts.length > 3 ? `<span class="cal-more">+${dayPosts.length - 3}</span>` : '';
+    const classes = ['cal-day'];
+    if (c.other) classes.push('muted');
+    if (dateStr === today) classes.push('today');
+    if (dateStr === selectedDay && !c.other) classes.push('selected');
+    return `<div class="${classes.join(' ')}" onclick="selectDay('${dateStr}')">
+      <span class="cal-daynum">${c.day}</span>
+      <div class="cal-dots">${dots}${more}</div>
+    </div>`;
+  }).join('');
+
+  renderDayPanel();
+}
+
+function selectDay(dateStr) { selectedDay = dateStr; renderCalendar(); }
+
+function renderDayPanel() {
+  const label = relativeLabel(selectedDay) || formatDate(selectedDay, { day: 'numeric', month: 'long', year: 'numeric' });
+  document.getElementById('dayPanelLabel').textContent = `Publicaciones · ${label}`;
+  const dayPosts = posts.filter(p => p.date === selectedDay).sort((a, b) => a.time.localeCompare(b.time));
+  const list = document.getElementById('dayPanelList');
+  if (!dayPosts.length) {
+    list.innerHTML = `<div class="empty-mini">No hay publicaciones programadas este día.</div>`;
+    return;
+  }
+  list.innerHTML = dayPosts.map(p => `
+    <div class="day-row" onclick="openModal('${p.id}')">
+      <img src="${escapeAttr(p.image)}" alt="" loading="lazy">
+      <div class="dr-body">
+        <div class="dr-title">${escapeHtml(p.title)}</div>
+        <div class="dr-time">${p.time} &middot; ${statusLabels[p.status]}</div>
+      </div>
+      <span class="badge ${p.status}" style="position:static;">${statusLabels[p.status]}</span>
+    </div>
+  `).join('');
+}
+
+/* ==================== IDEAS ==================== */
+function renderIdeas() {
+  const grid = document.getElementById('ideasGrid');
+  const empty = document.getElementById('emptyIdeas');
+  const sorted = [...ideas].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  if (!sorted.length) { grid.innerHTML = ''; empty.hidden = false; return; }
+  empty.hidden = true;
+  grid.innerHTML = sorted.map(i => `
+    <div class="idea-card">
+      <span class="idea-tag">${escapeHtml(i.tag)}</span>
+      <div class="idea-text">${escapeHtml(i.text)}</div>
+      <div class="idea-foot">
+        <span class="idea-date">${relativeLabel(i.createdAt) || formatDate(i.createdAt)}</span>
+        <div class="idea-actions">
+          <button class="icon-btn" onclick="convertIdea('${i.id}')" aria-label="Convertir en publicación">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+          </button>
+          <button class="icon-btn" onclick="openIdeaModal('${i.id}')" aria-label="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"></path></svg></button>
+          <button class="icon-btn danger" onclick="deleteIdea('${i.id}')" aria-label="Eliminar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"></path></svg></button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function convertIdea(id) {
+  const idea = ideas.find(i => i.id === id);
+  if (!idea) return;
+  openModal(null, { title: idea.text.slice(0, 80), caption: idea.text, date: todayStr() });
+}
+
+const ideaOverlay = document.getElementById('ideaModalOverlay');
+let editingIdeaId = null;
+
+function openIdeaModal(id) {
+  editingIdeaId = id || null;
+  const form = document.getElementById('ideaForm');
+  form.reset();
+  document.getElementById('ideaDeleteBtn').hidden = !id;
+  if (id) {
+    const i = ideas.find(x => x.id === id);
+    document.getElementById('ideaModalTitle').textContent = 'Editar idea';
+    document.getElementById('ideaId').value = i.id;
+    document.getElementById('ideaText').value = i.text;
+    document.getElementById('ideaTag').value = i.tag;
+  } else {
+    document.getElementById('ideaModalTitle').textContent = 'Nueva idea';
+    document.getElementById('ideaId').value = '';
+  }
+  ideaOverlay.classList.add('open');
+}
+function closeIdeaModal() { ideaOverlay.classList.remove('open'); }
+ideaOverlay.addEventListener('click', (e) => { if (e.target === ideaOverlay) closeIdeaModal(); });
+
+document.getElementById('ideaForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const data = { text: document.getElementById('ideaText').value.trim(), tag: document.getElementById('ideaTag').value };
+  if (editingIdeaId) {
+    Object.assign(ideas.find(i => i.id === editingIdeaId), data);
+    showToast('Idea actualizada');
+  } else {
+    ideas.push({ id: crypto.randomUUID(), createdAt: todayStr(), ...data });
+    showToast('Idea guardada');
+  }
+  saveIdeas();
+  closeIdeaModal();
+  renderIdeas();
+});
+document.getElementById('ideaDeleteBtn').addEventListener('click', () => {
+  if (!editingIdeaId) return;
+  ideas = ideas.filter(i => i.id !== editingIdeaId);
+  saveIdeas(); closeIdeaModal(); renderIdeas(); showToast('Idea eliminada');
+});
+function deleteIdea(id) { ideas = ideas.filter(i => i.id !== id); saveIdeas(); renderIdeas(); showToast('Idea eliminada'); }
+
+/* ==================== METRICS ==================== */
+function buildSparkline(values) {
+  const W = 80, H = 28;
+  const min = Math.min(...values), max = Math.max(...values), range = (max - min) || 1;
+  const pts = values.map((v, i) => [ (i / (values.length - 1)) * W, H - ((v - min) / range) * H ]);
+  const full = pts.map(p => p.join(',')).join(' ');
+  const lastSeg = `${pts[pts.length - 2].join(',')} ${pts[pts.length - 1].join(',')}`;
+  const [ex, ey] = pts[pts.length - 1];
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    <polyline points="${full}" fill="none" stroke="#6C6C76" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"></polyline>
+    <polyline points="${lastSeg}" fill="none" stroke="#D4AF37" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"></polyline>
+    <circle cx="${ex}" cy="${ey}" r="2.5" fill="#D4AF37"></circle>
+  </svg>`;
+}
+function iconPlatform(id) {
+  if (id === 'instagram') return iconInstagram();
+  if (id === 'tiktok') return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 2h-3v13.5a3 3 0 11-2.5-2.96V9.4a6 6 0 105 5.98V8.2a7.5 7.5 0 004.5 1.5V6.6A4.5 4.5 0 0116.5 2z"/></svg>`;
+  if (id === 'facebook') return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 9h3V5h-3c-2.2 0-4 1.8-4 4v2H8v4h2v7h4v-7h3l1-4h-4V9c0-.6.4-1 1-1z"/></svg>`;
+  return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 00-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 00-1.9 1.9A28 28 0 002 12a28 28 0 00.4 4.8 2.7 2.7 0 001.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 001.9-1.9A28 28 0 0022 12a28 28 0 00-.4-4.8zM10 15.5v-7l6 3.5-6 3.5z"/></svg>`;
+}
+function renderMetrics() {
+  document.getElementById('metricsGrid').innerHTML = metrics.map(m => `
+    <div class="metric-card">
+      <div class="metric-head">
+        <div class="metric-icon" style="background:${m.color}">${iconPlatform(m.id)}</div>
+        <div><div class="metric-name">${m.name}</div><div class="metric-followers-lbl">Seguidores totales</div></div>
+      </div>
+      <div class="metric-figure-row">
+        <div>
+          <div class="metric-figure">${compactNumber(m.followers)}</div>
+          <span class="delta-chip ${m.delta >= 0 ? 'up' : 'down'}" style="margin-top:8px;">${m.delta >= 0 ? '▲' : '▼'} ${Math.abs(m.delta)}%</span>
+        </div>
+        <div class="metric-spark">${buildSparkline(m.spark)}</div>
+      </div>
+      <div class="metric-secondary">
+        <div class="ms-item"><div class="ms-val">${m.engagement}</div><div class="ms-lbl">Engagement</div></div>
+        <div class="ms-item"><div class="ms-val">${m.reach}</div><div class="ms-lbl">Alcance</div></div>
+        <div class="ms-item"><div class="ms-val">${m.interactions}</div><div class="ms-lbl">Interacciones</div></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ==================== POST MODAL ==================== */
+const overlay = document.getElementById('modalOverlay');
+let editingId = null;
+let selectedStatus = 'draft';
+
+function openModal(id, prefill) {
+  editingId = id || null;
+  const form = document.getElementById('postForm');
+  form.reset();
+  document.getElementById('deleteBtn').hidden = !id;
+
+  if (id) {
+    const p = posts.find(x => x.id === id);
+    document.getElementById('modalTitle').textContent = 'Editar publicación';
+    document.getElementById('postId').value = p.id;
+    document.getElementById('postImage').value = p.image;
+    document.getElementById('postTitle').value = p.title;
+    document.getElementById('postCaption').value = p.caption || '';
+    document.getElementById('postDate').value = p.date;
+    document.getElementById('postTime').value = p.time;
+    selectedStatus = p.status;
+  } else {
+    document.getElementById('modalTitle').textContent = 'Nueva publicación';
+    document.getElementById('postId').value = '';
+    document.getElementById('postTitle').value = (prefill && prefill.title) || '';
+    document.getElementById('postCaption').value = (prefill && prefill.caption) || '';
+    document.getElementById('postDate').value = (prefill && prefill.date) || todayStr();
+    document.getElementById('postTime').value = '12:00';
+    selectedStatus = 'draft';
+  }
+  updateStatusPicker();
+  overlay.classList.add('open');
+}
+function closeModal() { overlay.classList.remove('open'); }
+overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+function updateStatusPicker() {
+  document.querySelectorAll('.status-opt').forEach(el => el.classList.toggle('active', el.dataset.status === selectedStatus));
+}
+document.getElementById('statusPicker').addEventListener('click', (e) => {
+  const opt = e.target.closest('.status-opt');
+  if (!opt) return;
+  selectedStatus = opt.dataset.status;
+  updateStatusPicker();
+});
+
+document.getElementById('postForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const data = {
+    title: document.getElementById('postTitle').value.trim(),
+    caption: document.getElementById('postCaption').value.trim(),
+    image: document.getElementById('postImage').value.trim(),
+    date: document.getElementById('postDate').value,
+    time: document.getElementById('postTime').value,
+    status: selectedStatus,
+  };
+  if (editingId) {
+    const p = posts.find(x => x.id === editingId);
+    Object.assign(p, data);
+    showToast('Publicación actualizada');
+  } else {
+    posts.push({ id: crypto.randomUUID(), likes: data.status === 'published' ? Math.round(200 + Math.random() * 1000) : 0, ...data });
+    showToast('Publicación creada');
+  }
+  savePosts();
+  closeModal();
+  renderCurrentView();
+});
+document.getElementById('deleteBtn').addEventListener('click', () => {
+  if (!editingId) return;
+  posts = posts.filter(p => p.id !== editingId);
+  savePosts(); closeModal(); renderCurrentView(); showToast('Publicación eliminada');
+});
+function deletePost(id) { posts = posts.filter(p => p.id !== id); savePosts(); renderCurrentView(); showToast('Publicación eliminada'); }
+
+/* ==================== TOAST ==================== */
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"></path></svg>${msg}`;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ==================== INIT ==================== */
+goToView('overview');
+</script>
+</body>
+</html>
