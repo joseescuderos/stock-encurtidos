@@ -325,6 +325,34 @@
   .idea-date { font-size:11.5px; color:var(--text-3); }
   .idea-actions { display:flex; gap:2px; }
 
+  /* ── SCRIPTS ── */
+  .script-spinner { width:18px; height:18px; border:2px solid rgba(212,175,55,0.25); border-top-color: var(--gold); border-radius:50%; animation: spin .8s linear infinite; flex-shrink:0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .script-loading { display:flex; align-items:center; gap:11px; padding:18px 4px 4px; color: var(--text-2); font-size:13.5px; }
+  .script-loading[hidden] { display:none; }
+
+  .script-result-card { border:1px solid var(--border); border-radius: var(--radius-sm); padding:20px; margin-top:18px; background: var(--surface-2); opacity:0; animation: fadeSlideUp .5s cubic-bezier(.16,1,.3,1) forwards; }
+  .script-result-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:10px; }
+  .script-duration { font-size:12.5px; color: var(--text-2); display:flex; align-items:center; gap:5px; flex-shrink:0; }
+  .script-duration svg { width:13px; height:13px; color: var(--gold); flex-shrink:0; }
+  .script-topic-title { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:var(--text); margin-bottom:18px; line-height:1.3; }
+  .script-section { margin-bottom:18px; }
+  .script-section:last-of-type { margin-bottom:0; }
+  .script-section-lbl { display:flex; align-items:center; gap:7px; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color: var(--gold-light); margin-bottom:9px; }
+  .script-section-lbl svg { width:14px; height:14px; flex-shrink:0; }
+  .script-text { font-size:14px; color: var(--text); line-height:1.65; }
+  .script-points { list-style:none; display:flex; flex-direction:column; gap:9px; }
+  .script-points li { font-size:14px; color: var(--text); line-height:1.55; padding-left:18px; position:relative; }
+  .script-points li::before { content:''; position:absolute; left:0; top:8px; width:6px; height:6px; border-radius:50%; background: var(--gold); }
+  .script-actions { display:flex; gap:10px; margin-top:22px; }
+
+  .script-card { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-sm); padding:16px; display:flex; flex-direction:column; gap:11px; cursor:pointer; transition: transform .15s ease, border-color .15s ease; }
+  .script-card:hover { transform: translateY(-2px); border-color: rgba(212,175,55,0.3); }
+  .script-card-top { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .script-card-duration { font-size:11.5px; color: var(--text-3); flex-shrink:0; }
+  .script-card-title { font-size:14px; font-weight:600; color: var(--text); line-height:1.35; }
+  .script-card-hook { font-size:12.5px; color: var(--text-2); line-height:1.5; flex:1; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+
   /* ── METRICS ── */
   .metrics-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap:18px; }
   .metric-card { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:20px; opacity:0; animation: fadeSlideUp .6s cubic-bezier(.16,1,.3,1) forwards; }
@@ -452,6 +480,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4"></path><path d="M12 2a7 7 0 00-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0012 2z"></path></svg>
         Ideas
       </button>
+      <button class="nav-item" data-view="scripts" onclick="goToView('scripts')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><path d="M14 2v6h6"></path><path d="M9 13h6M9 17h6M9 9h1"></path></svg>
+        Guiones
+      </button>
       <button class="nav-item" data-view="metrics" onclick="goToView('metrics')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"></path><rect x="7" y="12" width="3" height="6"></rect><rect x="13" y="8" width="3" height="10"></rect><rect x="19" y="5" width="0" height="13"></rect><path d="M13 8h3v10"></path></svg>
         Métricas
@@ -564,6 +596,54 @@
         </div>
       </section>
 
+      <!-- SCRIPTS -->
+      <section class="view" id="view-scripts">
+        <div class="topbar">
+          <div><h2>Guiones</h2><p class="view-sub">Genera guiones para tus videos con el asistente de Áurea</p></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Nuevo guion</h3></div>
+          <form id="scriptForm">
+            <div class="field">
+              <label>Tema del video</label>
+              <input type="text" id="scriptTopic" placeholder="Ej. Cómo elegimos los ingredientes de nuestros encurtidos" required>
+            </div>
+            <div class="field">
+              <label>Categoría (opcional)</label>
+              <select id="scriptCategory">
+                <option value="auto">Detectar automáticamente</option>
+                <option value="educativo">Educativo / Tutorial</option>
+                <option value="bts">Detrás de cámaras</option>
+                <option value="testimonio">Testimonio de cliente</option>
+                <option value="lanzamiento">Lanzamiento / Producto</option>
+                <option value="tendencia">Tendencia / Reto</option>
+                <option value="historia">Historia personal</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary" id="scriptGenBtn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"></path></svg>
+              Generar guion
+            </button>
+          </form>
+
+          <div class="script-loading" id="scriptLoading" hidden>
+            <span class="script-spinner"></span>
+            <span class="script-loading-text">Analizando el tema...</span>
+          </div>
+
+          <div class="script-result" id="scriptResult" hidden></div>
+        </div>
+
+        <div class="panel-head" style="margin: 4px 2px 14px;"><h3>Biblioteca de guiones</h3></div>
+        <div class="ideas-grid" id="scriptsGrid"></div>
+        <div class="empty" id="emptyScripts" hidden>
+          <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><path d="M14 2v6h6"></path></svg></div>
+          <h3>Tu biblioteca está vacía</h3>
+          <p>Genera un guion arriba y guárdalo para tenerlo siempre a mano.</p>
+        </div>
+      </section>
+
       <!-- METRICS -->
       <section class="view" id="view-metrics">
         <div class="topbar">
@@ -600,6 +680,9 @@
   </button>
   <button class="nav-item" data-view="ideas" onclick="goToView('ideas')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4"></path><path d="M12 2a7 7 0 00-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0012 2z"></path></svg>Ideas
+  </button>
+  <button class="nav-item" data-view="scripts" onclick="goToView('scripts')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><path d="M14 2v6h6"></path><path d="M9 13h6M9 17h6M9 9h1"></path></svg>Guiones
   </button>
   <button class="nav-item" data-view="metrics" onclick="goToView('metrics')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"></path><path d="M7 16v-4M12 16V8M17 16v-7"></path></svg>Métricas
@@ -691,6 +774,14 @@
   </div>
 </div>
 
+<!-- SCRIPT VIEW MODAL -->
+<div class="modal-overlay" id="scriptModalOverlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="scriptModalBody"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -700,6 +791,7 @@ const IDEAS_KEY = 'aurea_ideas_v1';
 const FOLLOWERS_KEY = 'aurea_followers_v2';
 const METRICS_KEY = 'aurea_metrics_v3';
 const HERO_KEY = 'aurea_hero_v1';
+const SCRIPTS_KEY = 'aurea_scripts_v1';
 
 function addDays(n) {
   const d = new Date();
@@ -788,6 +880,7 @@ let ideas = loadJSON(IDEAS_KEY, seedIdeas);
 let followerHistory = loadJSON(FOLLOWERS_KEY, generateFollowerHistory(30));
 let metrics = loadJSON(METRICS_KEY, seedMetrics);
 let heroExtras = loadJSON(HERO_KEY, seedHeroExtras);
+let scripts = loadJSON(SCRIPTS_KEY, []);
 
 function savePosts() { saveJSON(STORAGE_KEY, posts); }
 function saveIdeas() { saveJSON(IDEAS_KEY, ideas); }
@@ -913,6 +1006,7 @@ function renderCurrentView() {
   else if (currentView === 'posts') renderPostsView();
   else if (currentView === 'calendar') renderCalendar();
   else if (currentView === 'ideas') renderIdeas();
+  else if (currentView === 'scripts') renderScriptsLibrary();
   else if (currentView === 'metrics') renderMetrics();
 }
 
@@ -1277,6 +1371,235 @@ document.getElementById('ideaDeleteBtn').addEventListener('click', () => {
   saveIdeas(); closeIdeaModal(); renderIdeas(); showToast('Idea eliminada');
 });
 function deleteIdea(id) { ideas = ideas.filter(i => i.id !== id); saveIdeas(); renderIdeas(); showToast('Idea eliminada'); }
+
+/* ==================== SCRIPTS (AI script generator) ==================== */
+function iconSpark() {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"></path></svg>`;
+}
+function iconListCheck() {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg>`;
+}
+function iconClock() {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg>`;
+}
+function iconCTA() {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"></path></svg>`;
+}
+
+const scriptCategoryRules = [
+  { key: 'educativo', test: /c[oó]mo|tutorial|gu[ií]a|paso a paso|aprende|consejo|tips?\b/i },
+  { key: 'bts', test: /detr[aá]s|proceso|making of|d[ií]a a d[ií]a|equipo/i },
+  { key: 'testimonio', test: /testimonio|cliente|opini[oó]n|rese[ñn]a/i },
+  { key: 'lanzamiento', test: /lanzamiento|nuevo|producto|colecci[oó]n/i },
+  { key: 'tendencia', test: /tendencia|reto|challenge|viral/i },
+  { key: 'historia', test: /historia|experiencia|mi viaje|an[eé]cdota/i },
+];
+function detectScriptCategory(topic) {
+  for (const rule of scriptCategoryRules) if (rule.test.test(topic)) return rule.key;
+  return 'general';
+}
+
+const scriptFormatByCategory = {
+  educativo: { format: 'Video largo', durations: ['3–5 minutos', '5–7 minutos'] },
+  bts: { format: 'Reel corto', durations: ['20–30 segundos', '30–45 segundos'] },
+  testimonio: { format: 'Reel corto', durations: ['25–40 segundos'] },
+  lanzamiento: { format: 'Reel corto', durations: ['15–30 segundos', '30–45 segundos'] },
+  tendencia: { format: 'Reel corto', durations: ['15–25 segundos'] },
+  historia: { format: 'Historia', durations: ['4–6 historias de ~15s cada una'] },
+  general: { format: 'Reel corto', durations: ['30–45 segundos', '45–60 segundos'] },
+};
+
+const scriptHookTemplates = [
+  '¿Sabías que casi nadie hace bien esto de {topic}? Te lo explico rápido.',
+  'Para el scroll un segundo: esto sobre {topic} te puede servir hoy mismo.',
+  'Llevo tiempo queriendo hablarte de {topic}, así que vamos directo al grano.',
+  'Si te interesa {topic}, quédate — en menos de un minuto te lo cuento todo.',
+  'Esto que voy a contarte sobre {topic} cambió la forma en que lo hacemos por aquí.',
+  'Una pregunta que me hacen mucho es sobre {topic}. Hoy te respondo con calma.',
+  'Ojo con esto si te importa {topic}: te lo resumo en unos segundos.',
+];
+const scriptPointTemplates = [
+  'Contexto rápido: en una frase, explica por qué {topic} le importa a tu audiencia justo ahora.',
+  'Comparte el primer dato o aprendizaje concreto que tengas sobre {topic}.',
+  'Muestra un ejemplo real, un antes/después o una cifra relacionada con {topic}.',
+  'Cuenta un error común que la gente comete con {topic} y cómo evitarlo.',
+  'Explica el paso o el truco más práctico que puedas dar sobre {topic}.',
+  'Responde la duda que más te preguntan sobre {topic} en una sola frase.',
+  'Conecta {topic} con una historia breve o anécdota personal para generar cercanía.',
+];
+const scriptClosingTemplates = [
+  'Si esto sobre {topic} te sirvió, guárdalo para después y cuéntame en los comentarios qué te gustaría que profundice.',
+  'Y así es como abordamos {topic} por aquí. Sígueme para más contenido como este.',
+  'Cuéntame en los comentarios: ¿tú cómo manejas {topic}? Me encantaría leerte.',
+  'Si quieres que hable más a fondo de {topic}, dímelo en los comentarios y lo preparo.',
+  'Comparte esto con alguien a quien le sirva saber sobre {topic}, y nos vemos en el próximo video.',
+];
+
+function pickOne(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function shuffleArr(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function fillTopic(str, topic) { return str.replace(/\{topic\}/g, topic); }
+
+function buildScript(topic, categoryInput) {
+  const category = (!categoryInput || categoryInput === 'auto') ? detectScriptCategory(topic) : categoryInput;
+  const fc = scriptFormatByCategory[category] || scriptFormatByCategory.general;
+  const duration = pickOne(fc.durations);
+  const hook = fillTopic(pickOne(scriptHookTemplates), topic);
+  const pointCount = 3 + (Math.random() > 0.5 ? 1 : 0);
+  const points = shuffleArr(scriptPointTemplates).slice(0, pointCount).map(t => fillTopic(t, topic));
+  const closing = fillTopic(pickOne(scriptClosingTemplates), topic);
+  return { topic, categoryInput: categoryInput || 'auto', category, format: fc.format, duration, hook, points, closing };
+}
+
+let currentScript = null;
+
+document.getElementById('scriptForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const topic = document.getElementById('scriptTopic').value.trim();
+  const category = document.getElementById('scriptCategory').value;
+  if (!topic) return;
+  runScriptGeneration(topic, category);
+});
+
+function runScriptGeneration(topic, categoryInput) {
+  document.getElementById('scriptResult').hidden = true;
+  const loading = document.getElementById('scriptLoading');
+  const loadingText = loading.querySelector('.script-loading-text');
+  const btn = document.getElementById('scriptGenBtn');
+  loading.hidden = false;
+  btn.disabled = true;
+
+  const steps = ['Analizando el tema...', 'Armando el gancho...', 'Definiendo los puntos clave...', 'Puliendo el cierre...'];
+  let i = 0;
+  loadingText.textContent = steps[0];
+  const stepTimer = setInterval(() => { i = (i + 1) % steps.length; loadingText.textContent = steps[i]; }, 380);
+
+  setTimeout(() => {
+    clearInterval(stepTimer);
+    loading.hidden = true;
+    btn.disabled = false;
+    currentScript = buildScript(topic, categoryInput);
+    renderScriptResult(currentScript);
+  }, 1100 + Math.random() * 400);
+}
+
+function regenerateScript() {
+  if (!currentScript) return;
+  runScriptGeneration(currentScript.topic, currentScript.categoryInput);
+}
+
+function renderScriptResult(s) {
+  const el = document.getElementById('scriptResult');
+  el.innerHTML = `
+    <div class="script-result-card">
+      <div class="script-result-head">
+        <span class="idea-tag">${escapeHtml(s.format)}</span>
+        <span class="script-duration">${iconClock()}${escapeHtml(s.duration)}</span>
+      </div>
+      <h4 class="script-topic-title">${escapeHtml(s.topic)}</h4>
+      <div class="script-section">
+        <div class="script-section-lbl">${iconSpark()}Gancho inicial</div>
+        <p class="script-text">${escapeHtml(s.hook)}</p>
+      </div>
+      <div class="script-section">
+        <div class="script-section-lbl">${iconListCheck()}Puntos clave</div>
+        <ul class="script-points">${s.points.map(p => `<li>${escapeHtml(p)}</li>`).join('')}</ul>
+      </div>
+      <div class="script-section">
+        <div class="script-section-lbl">${iconCTA()}Cierre y llamada a la acción</div>
+        <p class="script-text">${escapeHtml(s.closing)}</p>
+      </div>
+      <div class="script-actions">
+        <button type="button" class="btn btn-primary" onclick="saveCurrentScript()">Guardar en biblioteca</button>
+        <button type="button" class="btn btn-ghost" onclick="regenerateScript()">Regenerar</button>
+      </div>
+    </div>
+  `;
+  el.hidden = false;
+}
+
+function saveCurrentScript() {
+  if (!currentScript) return;
+  scripts.unshift({ id: crypto.randomUUID(), createdAt: todayStr(), ...currentScript });
+  saveJSON(SCRIPTS_KEY, scripts);
+  renderScriptsLibrary();
+  showToast('Guion guardado en tu biblioteca');
+}
+
+function renderScriptsLibrary() {
+  const grid = document.getElementById('scriptsGrid');
+  const empty = document.getElementById('emptyScripts');
+  if (!scripts.length) { grid.innerHTML = ''; empty.hidden = false; return; }
+  empty.hidden = true;
+  grid.innerHTML = scripts.map(s => `
+    <div class="script-card" onclick="openScriptView('${s.id}')">
+      <div class="script-card-top">
+        <span class="idea-tag">${escapeHtml(s.format)}</span>
+        <span class="script-card-duration">${escapeHtml(s.duration)}</span>
+      </div>
+      <div class="script-card-title">${escapeHtml(s.topic)}</div>
+      <div class="script-card-hook">${escapeHtml(s.hook)}</div>
+      <div class="idea-foot">
+        <span class="idea-date">${relativeLabel(s.createdAt) || formatDate(s.createdAt)}</span>
+        <div class="idea-actions">
+          <button class="icon-btn danger" onclick="event.stopPropagation(); deleteScript('${s.id}')" aria-label="Eliminar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"></path></svg></button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+const scriptModalOverlay = document.getElementById('scriptModalOverlay');
+scriptModalOverlay.addEventListener('click', (e) => { if (e.target === scriptModalOverlay) closeScriptModal(); });
+
+function openScriptView(id) {
+  const s = scripts.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('scriptModalBody').innerHTML = `
+    <h2>${escapeHtml(s.topic)}</h2>
+    <div class="script-result-head" style="margin-bottom:18px;">
+      <span class="idea-tag">${escapeHtml(s.format)}</span>
+      <span class="script-duration">${iconClock()}${escapeHtml(s.duration)}</span>
+    </div>
+    <div class="script-section">
+      <div class="script-section-lbl">${iconSpark()}Gancho inicial</div>
+      <p class="script-text">${escapeHtml(s.hook)}</p>
+    </div>
+    <div class="script-section">
+      <div class="script-section-lbl">${iconListCheck()}Puntos clave</div>
+      <ul class="script-points">${s.points.map(p => `<li>${escapeHtml(p)}</li>`).join('')}</ul>
+    </div>
+    <div class="script-section">
+      <div class="script-section-lbl">${iconCTA()}Cierre y llamada a la acción</div>
+      <p class="script-text">${escapeHtml(s.closing)}</p>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-delete" onclick="deleteScript('${s.id}'); closeScriptModal();"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"></path></svg></button>
+      <button type="button" class="btn btn-ghost" onclick="closeScriptModal()">Cerrar</button>
+      <button type="button" class="btn btn-primary" onclick="useScriptAsPost('${s.id}')">Crear publicación</button>
+    </div>
+  `;
+  scriptModalOverlay.classList.add('open');
+}
+function closeScriptModal() { scriptModalOverlay.classList.remove('open'); }
+
+function useScriptAsPost(id) {
+  const s = scripts.find(x => x.id === id);
+  if (!s) return;
+  closeScriptModal();
+  const caption = `${s.hook}\n\n${s.points.map(p => '• ' + p).join('\n')}\n\n${s.closing}`;
+  openModal(null, { title: s.topic, caption, date: todayStr() });
+}
+
+function deleteScript(id) {
+  scripts = scripts.filter(s => s.id !== id);
+  saveJSON(SCRIPTS_KEY, scripts);
+  renderScriptsLibrary();
+  showToast('Guion eliminado');
+}
 
 /* ==================== METRICS ==================== */
 function buildSparkline(values) {
