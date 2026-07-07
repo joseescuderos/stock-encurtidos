@@ -353,6 +353,55 @@
   .script-card-title { font-size:14px; font-weight:600; color: var(--text); line-height:1.35; }
   .script-card-hook { font-size:12.5px; color: var(--text-2); line-height:1.5; flex:1; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 
+  /* ── CAROUSELS ── */
+  .style-picker { display:flex; gap:14px; flex-wrap:wrap; }
+  .style-option { display:flex; flex-direction:column; align-items:center; gap:7px; }
+  .style-swatch {
+    width:60px; height:76px; border-radius:12px; cursor:pointer;
+    border:2px solid transparent; display:flex; align-items:center; justify-content:center;
+    transition: border-color .15s ease, transform .15s ease; padding:0;
+  }
+  .style-swatch:hover { transform: translateY(-2px); }
+  .style-swatch.active { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-dim); }
+  .style-swatch .sw-glyph { font-weight:700; font-size:17px; }
+  .sw-name { font-size:10px; font-weight:600; color: var(--text-2); text-align:center; max-width:70px; line-height:1.2; }
+
+  .carousel-preview-head { display:flex; align-items:center; justify-content:space-between; margin: 20px 0 12px; flex-wrap:wrap; gap:8px; }
+  .carousel-preview-head h4 { font-family:'Playfair Display',serif; font-size:16px; font-weight:700; color: var(--text); }
+
+  .carousel-strip { display:flex; gap:14px; overflow-x:auto; padding: 4px 4px 16px; scroll-snap-type: x proximity; scrollbar-width: thin; }
+  .carousel-strip::-webkit-scrollbar { height:6px; }
+  .carousel-strip::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.3); border-radius:99px; }
+
+  .carousel-slide {
+    flex:0 0 auto; width:230px; aspect-ratio: 4/5; border-radius:16px;
+    padding:22px 20px; display:flex; flex-direction:column;
+    cursor:pointer; scroll-snap-align:start; position:relative;
+    transition: transform .15s ease; border:1px solid rgba(255,255,255,0.07);
+  }
+  .carousel-slide:hover { transform: translateY(-3px); }
+  .carousel-slide.cs-center { align-items:center; justify-content:center; text-align:center; }
+  .carousel-slide .cs-badge { font-size:11px; font-weight:700; letter-spacing:0.5px; opacity:0.65; }
+  .carousel-slide .cs-kind { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; opacity:0.6; margin-top:auto; margin-bottom:8px; }
+  .carousel-slide.cs-center .cs-kind { margin-top:0; }
+  .carousel-slide .cs-title { font-family:'Playfair Display',serif; font-size:19px; font-weight:700; line-height:1.28; margin-bottom:10px; }
+  .carousel-slide .cs-body { font-size:12.5px; line-height:1.55; opacity:0.85; }
+  .carousel-slide .cs-edit-hint {
+    position:absolute; top:14px; right:14px; width:26px; height:26px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.18);
+    opacity:0; transition: opacity .15s ease;
+  }
+  .carousel-slide:hover .cs-edit-hint { opacity:1; }
+  .carousel-slide .cs-edit-hint svg { width:13px; height:13px; }
+
+  .carousel-card { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-sm); overflow:hidden; cursor:pointer; transition: transform .15s ease, border-color .15s ease; display:flex; flex-direction:column; }
+  .carousel-card:hover { transform: translateY(-2px); border-color: rgba(212,175,55,0.3); }
+  .carousel-card-swatch { height:76px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .carousel-card-swatch span { font-family:'Playfair Display',serif; font-weight:700; font-size:21px; }
+  .carousel-card-body { padding:14px 16px 16px; display:flex; flex-direction:column; gap:9px; flex:1; }
+  .carousel-card-title { font-size:14px; font-weight:600; color: var(--text); line-height:1.35; }
+  .carousel-card-meta { font-size:11.5px; color: var(--text-3); }
+
   /* ── METRICS ── */
   .metrics-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap:18px; }
   .metric-card { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); padding:20px; opacity:0; animation: fadeSlideUp .6s cubic-bezier(.16,1,.3,1) forwards; }
@@ -414,6 +463,7 @@
     .cal-shell { height: calc(100vh - 160px); min-height:460px; }
   }
   @media (max-width: 720px) {
+    .script-actions { flex-direction:column; }
     .stats-row { grid-template-columns: repeat(3,1fr); gap:8px; }
     .stat-card { padding:12px 10px; }
     .stat-card .val { font-size:19px; }
@@ -431,6 +481,11 @@
     .hero-metrics-grid { grid-template-columns: repeat(2, 1fr); gap:10px; }
     .hero-card { padding:15px 14px 13px; }
     .hero-figure { font-size:25px; }
+
+    .carousel-slide { width:186px; padding:18px 16px; }
+    .carousel-slide .cs-title { font-size:16px; }
+    .carousel-slide .cs-body { font-size:11.5px; }
+    .style-swatch { width:52px; height:66px; }
 
     .cal-topbar { padding:16px 0 12px; }
     .cal-topbar .btn-new span.full { display:none; }
@@ -483,6 +538,10 @@
       <button class="nav-item" data-view="scripts" onclick="goToView('scripts')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><path d="M14 2v6h6"></path><path d="M9 13h6M9 17h6M9 9h1"></path></svg>
         Guiones
+      </button>
+      <button class="nav-item" data-view="carousels" onclick="goToView('carousels')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="12" height="16" rx="2"></rect><path d="M19 8v11a1 1 0 01-1 1H9"></path></svg>
+        Carruseles
       </button>
       <button class="nav-item" data-view="metrics" onclick="goToView('metrics')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"></path><rect x="7" y="12" width="3" height="6"></rect><rect x="13" y="8" width="3" height="10"></rect><rect x="19" y="5" width="0" height="13"></rect><path d="M13 8h3v10"></path></svg>
@@ -644,6 +703,68 @@
         </div>
       </section>
 
+      <!-- CAROUSELS -->
+      <section class="view" id="view-carousels">
+        <div class="topbar">
+          <div><h2>Carruseles</h2><p class="view-sub">Genera carruseles completos para Instagram con el asistente de Áurea</p></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Nuevo carrusel</h3></div>
+          <form id="carouselForm">
+            <div class="field">
+              <label>Tema del carrusel</label>
+              <input type="text" id="carouselTopic" placeholder="Ej. Cómo conservar tus encurtidos por más tiempo" required>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Número de filminas</label>
+                <select id="carouselSlideCount">
+                  <option value="5">5 filminas</option>
+                  <option value="6" selected>6 filminas</option>
+                  <option value="7">7 filminas</option>
+                  <option value="8">8 filminas</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>Estilo visual</label>
+              <div class="style-picker" id="stylePicker"></div>
+            </div>
+            <button type="submit" class="btn btn-primary" id="carouselGenBtn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"></path></svg>
+              Generar carrusel
+            </button>
+          </form>
+
+          <div class="script-loading" id="carouselLoading" hidden>
+            <span class="script-spinner"></span>
+            <span class="script-loading-text">Analizando el tema...</span>
+          </div>
+
+          <div id="carouselResult" hidden>
+            <div class="carousel-preview-head">
+              <h4 id="carouselResultTitle"></h4>
+              <span class="idea-date">Toca una filmina para editarla</span>
+            </div>
+            <div class="carousel-strip" id="carouselStrip"></div>
+            <div class="script-actions">
+              <button type="button" class="btn btn-primary" onclick="saveCurrentCarousel()">Guardar en biblioteca</button>
+              <button type="button" class="btn btn-ghost" onclick="downloadCurrentCarousel()">Descargar todas</button>
+              <button type="button" class="btn btn-ghost" onclick="regenerateCarousel()">Regenerar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-head" style="margin: 4px 2px 14px;"><h3>Biblioteca de carruseles</h3></div>
+        <div class="ideas-grid" id="carouselsGrid"></div>
+        <div class="empty" id="emptyCarousels" hidden>
+          <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="12" height="16" rx="2"></rect><path d="M19 8v11a1 1 0 01-1 1H9"></path></svg></div>
+          <h3>Tu biblioteca está vacía</h3>
+          <p>Genera un carrusel arriba y guárdalo para tenerlo siempre a mano.</p>
+        </div>
+      </section>
+
       <!-- METRICS -->
       <section class="view" id="view-metrics">
         <div class="topbar">
@@ -683,6 +804,9 @@
   </button>
   <button class="nav-item" data-view="scripts" onclick="goToView('scripts')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><path d="M14 2v6h6"></path><path d="M9 13h6M9 17h6M9 9h1"></path></svg>Guiones
+  </button>
+  <button class="nav-item" data-view="carousels" onclick="goToView('carousels')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="12" height="16" rx="2"></rect><path d="M19 8v11a1 1 0 01-1 1H9"></path></svg>Carruseles
   </button>
   <button class="nav-item" data-view="metrics" onclick="goToView('metrics')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"></path><path d="M7 16v-4M12 16V8M17 16v-7"></path></svg>Métricas
@@ -782,6 +906,22 @@
   </div>
 </div>
 
+<!-- SLIDE EDIT MODAL -->
+<div class="modal-overlay" id="slideModalOverlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>Editar filmina</h2>
+    <form id="slideForm">
+      <div class="field"><label>Texto principal</label><input type="text" id="slideTitle" maxlength="90" required></div>
+      <div class="field"><label>Texto de apoyo</label><textarea id="slideBody" maxlength="220" required></textarea></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeSlideModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar filmina</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -792,6 +932,7 @@ const FOLLOWERS_KEY = 'aurea_followers_v2';
 const METRICS_KEY = 'aurea_metrics_v3';
 const HERO_KEY = 'aurea_hero_v1';
 const SCRIPTS_KEY = 'aurea_scripts_v1';
+const CAROUSELS_KEY = 'aurea_carousels_v1';
 
 function addDays(n) {
   const d = new Date();
@@ -881,6 +1022,7 @@ let followerHistory = loadJSON(FOLLOWERS_KEY, generateFollowerHistory(30));
 let metrics = loadJSON(METRICS_KEY, seedMetrics);
 let heroExtras = loadJSON(HERO_KEY, seedHeroExtras);
 let scripts = loadJSON(SCRIPTS_KEY, []);
+let carousels = loadJSON(CAROUSELS_KEY, []);
 
 function savePosts() { saveJSON(STORAGE_KEY, posts); }
 function saveIdeas() { saveJSON(IDEAS_KEY, ideas); }
@@ -1007,6 +1149,7 @@ function renderCurrentView() {
   else if (currentView === 'calendar') renderCalendar();
   else if (currentView === 'ideas') renderIdeas();
   else if (currentView === 'scripts') renderScriptsLibrary();
+  else if (currentView === 'carousels') renderCarouselsLibrary();
   else if (currentView === 'metrics') renderMetrics();
 }
 
@@ -1601,6 +1744,312 @@ function deleteScript(id) {
   showToast('Guion eliminado');
 }
 
+/* ==================== CAROUSELS (AI carousel generator) ==================== */
+const CAROUSEL_STYLES = [
+  { id: 'gold', name: 'Dorado Premium', bg: '#0A0A0C', text: '#F3F1EA', accent: '#D4AF37', serif: true },
+  { id: 'cream', name: 'Editorial Claro', bg: '#F5EFE2', text: '#241C10', accent: '#8A6C1F', serif: true },
+  { id: 'bold', name: 'Bold Contraste', bg: '#000000', text: '#FFFFFF', accent: '#F0D584', serif: false },
+  { id: 'soft', name: 'Suave Dorado', bgGrad: ['#2A1D10', '#140D06'], text: '#F6ECD9', accent: '#E3B563', serif: true },
+];
+function getCarouselStyle(id) { return CAROUSEL_STYLES.find(s => s.id === id) || CAROUSEL_STYLES[0]; }
+function carouselStyleCss(style) { return style.bgGrad ? `linear-gradient(155deg, ${style.bgGrad[0]}, ${style.bgGrad[1]})` : style.bg; }
+function carouselFontFamily(style) { return style.serif ? "'Playfair Display',serif" : "'Inter',sans-serif"; }
+
+let selectedCarouselStyleId = CAROUSEL_STYLES[0].id;
+
+function renderStylePicker() {
+  document.getElementById('stylePicker').innerHTML = CAROUSEL_STYLES.map(s => `
+    <div class="style-option">
+      <button type="button" class="style-swatch ${s.id === selectedCarouselStyleId ? 'active' : ''}" style="background:${carouselStyleCss(s)};" onclick="selectCarouselStyle('${s.id}')" aria-label="${escapeAttr(s.name)}">
+        <span class="sw-glyph" style="color:${s.text}; font-family:${carouselFontFamily(s)};">Aa</span>
+      </button>
+      <span class="sw-name">${escapeHtml(s.name)}</span>
+    </div>
+  `).join('');
+}
+function selectCarouselStyle(id) {
+  selectedCarouselStyleId = id;
+  renderStylePicker();
+  if (currentCarousel) { currentCarousel.styleId = id; renderCarouselResult(currentCarousel); }
+}
+
+const carouselHookTemplates = [
+  'Esto cambia lo que sabías sobre {topic}',
+  'Guarda esto antes de que se borre: {topic}',
+  'Nadie te cuenta esto sobre {topic}',
+  'Lo que aprendimos sobre {topic}',
+  '{topic}: la guía que necesitabas',
+  'Para el scroll — esto es sobre {topic}',
+];
+const carouselHookSubs = [
+  'Desliza para descubrirlo →',
+  'Todo lo que necesitas saber, en unas filminas',
+  'Tómate un minuto — vale la pena',
+];
+const carouselMiddleTitles = [
+  'Empecemos por lo básico',
+  'Un error muy común',
+  'El truco que sí funciona',
+  'Algo que casi nadie hace',
+  'Un dato que sorprende',
+  'Cómo lo hacemos nosotros',
+  'Lo que deberías evitar',
+  'La parte más importante',
+];
+const carouselMiddleBodies = [
+  'En una frase: así de importante es {topic} para tu día a día.',
+  'Este es el primer dato que deberías tener en cuenta sobre {topic}.',
+  'Un ejemplo real que lo deja clarísimo, relacionado con {topic}.',
+  'El error que más se repite al hablar de {topic}.',
+  'El paso más práctico que puedes aplicar hoy sobre {topic}.',
+  'La pregunta que más nos hacen sobre {topic}, respondida.',
+  'Así conectamos {topic} con lo que de verdad importa.',
+  'Una comparación sencilla que ayuda a entender {topic}.',
+];
+const carouselClosingTitles = ['¿Te sirvió esto?', 'Eso es todo por hoy', 'Ahora te toca a ti', 'Guarda esto para después'];
+const carouselClosingBodies = [
+  'Guarda esta publicación y cuéntame en los comentarios qué te gustaría ver sobre {topic}.',
+  'Comparte esto con alguien a quien le sirva saber sobre {topic}.',
+  'Sígueme para más contenido como este sobre {topic}.',
+  'Déjame en los comentarios tu opinión sobre {topic}.',
+];
+
+function buildCarousel(topic, slideCount, styleId) {
+  const slides = [];
+  slides.push({ kind: 'hook', title: fillTopic(pickOne(carouselHookTemplates), topic), body: pickOne(carouselHookSubs) });
+  const middleCount = slideCount - 2;
+  const titles = shuffleArr(carouselMiddleTitles).slice(0, middleCount);
+  const bodies = shuffleArr(carouselMiddleBodies).slice(0, middleCount);
+  for (let i = 0; i < middleCount; i++) slides.push({ kind: 'point', title: titles[i], body: fillTopic(bodies[i], topic) });
+  slides.push({ kind: 'closing', title: pickOne(carouselClosingTitles), body: fillTopic(pickOne(carouselClosingBodies), topic) });
+  return { id: crypto.randomUUID(), topic, slideCount, styleId, createdAt: todayStr(), slides };
+}
+
+let currentCarousel = null;
+
+document.getElementById('carouselForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const topic = document.getElementById('carouselTopic').value.trim();
+  const slideCount = parseInt(document.getElementById('carouselSlideCount').value, 10);
+  if (!topic) return;
+  runCarouselGeneration(topic, slideCount, selectedCarouselStyleId);
+});
+
+function runCarouselGeneration(topic, slideCount, styleId) {
+  document.getElementById('carouselResult').hidden = true;
+  const loading = document.getElementById('carouselLoading');
+  const loadingText = loading.querySelector('.script-loading-text');
+  const btn = document.getElementById('carouselGenBtn');
+  loading.hidden = false;
+  btn.disabled = true;
+
+  const steps = ['Analizando el tema...', 'Armando el gancho...', 'Desarrollando el contenido...', 'Escribiendo el cierre...'];
+  let i = 0;
+  loadingText.textContent = steps[0];
+  const stepTimer = setInterval(() => { i = (i + 1) % steps.length; loadingText.textContent = steps[i]; }, 380);
+
+  setTimeout(() => {
+    clearInterval(stepTimer);
+    loading.hidden = true;
+    btn.disabled = false;
+    currentCarousel = buildCarousel(topic, slideCount, styleId);
+    renderCarouselResult(currentCarousel);
+  }, 1200 + Math.random() * 500);
+}
+
+function regenerateCarousel() {
+  if (!currentCarousel) return;
+  runCarouselGeneration(currentCarousel.topic, currentCarousel.slideCount, currentCarousel.styleId);
+}
+
+function slideKindLabel(kind) { return kind === 'hook' ? 'Gancho' : kind === 'closing' ? 'Cierre · CTA' : 'Desarrollo'; }
+
+function renderSlideCardHTML(slide, style, index, total) {
+  const isCenter = slide.kind === 'hook' || slide.kind === 'closing';
+  return `
+    <div class="carousel-slide ${isCenter ? 'cs-center' : ''}" style="background:${carouselStyleCss(style)}; color:${style.text};" onclick="openSlideEditor(${index})">
+      <span class="cs-badge" style="color:${style.accent};">${String(index + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}</span>
+      <span class="cs-kind" style="color:${style.accent};">${slideKindLabel(slide.kind)}</span>
+      <div class="cs-title" style="font-family:${carouselFontFamily(style)};">${escapeHtml(slide.title)}</div>
+      <div class="cs-body">${escapeHtml(slide.body)}</div>
+      <div class="cs-edit-hint" style="color:${style.text};"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"></path></svg></div>
+    </div>
+  `;
+}
+
+function renderCarouselResult(c) {
+  const style = getCarouselStyle(c.styleId);
+  selectedCarouselStyleId = c.styleId;
+  document.getElementById('carouselResultTitle').textContent = c.topic;
+  document.getElementById('carouselStrip').innerHTML = c.slides.map((s, i) => renderSlideCardHTML(s, style, i, c.slides.length)).join('');
+  document.getElementById('carouselResult').hidden = false;
+  renderStylePicker();
+}
+
+let editingSlideIndex = null;
+function openSlideEditor(index) {
+  if (!currentCarousel) return;
+  editingSlideIndex = index;
+  const s = currentCarousel.slides[index];
+  document.getElementById('slideTitle').value = s.title;
+  document.getElementById('slideBody').value = s.body;
+  document.getElementById('slideModalOverlay').classList.add('open');
+}
+function closeSlideModal() { document.getElementById('slideModalOverlay').classList.remove('open'); }
+document.getElementById('slideModalOverlay').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeSlideModal(); });
+document.getElementById('slideForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  if (!currentCarousel || editingSlideIndex === null) return;
+  currentCarousel.slides[editingSlideIndex].title = document.getElementById('slideTitle').value.trim();
+  currentCarousel.slides[editingSlideIndex].body = document.getElementById('slideBody').value.trim();
+  renderCarouselResult(currentCarousel);
+  closeSlideModal();
+  showToast('Filmina actualizada');
+});
+
+function saveCurrentCarousel() {
+  if (!currentCarousel) return;
+  const existingIdx = carousels.findIndex(c => c.id === currentCarousel.id);
+  if (existingIdx >= 0) carousels[existingIdx] = currentCarousel;
+  else carousels.unshift(currentCarousel);
+  saveJSON(CAROUSELS_KEY, carousels);
+  renderCarouselsLibrary();
+  showToast('Carrusel guardado en tu biblioteca');
+}
+
+function renderCarouselsLibrary() {
+  const grid = document.getElementById('carouselsGrid');
+  const empty = document.getElementById('emptyCarousels');
+  if (!carousels.length) { grid.innerHTML = ''; empty.hidden = false; return; }
+  empty.hidden = true;
+  grid.innerHTML = carousels.map(c => {
+    const style = getCarouselStyle(c.styleId);
+    return `
+    <div class="carousel-card" onclick="loadSavedCarousel('${c.id}')">
+      <div class="carousel-card-swatch" style="background:${carouselStyleCss(style)};">
+        <span style="color:${style.text}; font-family:${carouselFontFamily(style)};">Aa</span>
+      </div>
+      <div class="carousel-card-body">
+        <div class="carousel-card-title">${escapeHtml(c.topic)}</div>
+        <div class="carousel-card-meta">${c.slides.length} filminas &middot; ${escapeHtml(style.name)}</div>
+        <div class="idea-foot">
+          <span class="idea-date">${relativeLabel(c.createdAt) || formatDate(c.createdAt)}</span>
+          <div class="idea-actions">
+            <button class="icon-btn danger" onclick="event.stopPropagation(); deleteCarousel('${c.id}')" aria-label="Eliminar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"></path></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  }).join('');
+}
+
+function loadSavedCarousel(id) {
+  const c = carousels.find(x => x.id === id);
+  if (!c) return;
+  currentCarousel = JSON.parse(JSON.stringify(c));
+  document.getElementById('carouselTopic').value = c.topic;
+  document.getElementById('carouselSlideCount').value = String(c.slideCount);
+  selectedCarouselStyleId = c.styleId;
+  renderCarouselResult(currentCarousel);
+  document.getElementById('carouselResult').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function deleteCarousel(id) {
+  carousels = carousels.filter(c => c.id !== id);
+  saveJSON(CAROUSELS_KEY, carousels);
+  renderCarouselsLibrary();
+  showToast('Carrusel eliminado');
+}
+
+function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = text.split(' ');
+  let line = '';
+  const lines = [];
+  words.forEach(w => {
+    const test = line ? line + ' ' + w : w;
+    if (ctx.measureText(test).width > maxWidth && line) { lines.push(line); line = w; }
+    else line = test;
+  });
+  if (line) lines.push(line);
+  lines.forEach((l, i) => ctx.fillText(l, x, y + i * lineHeight));
+  return lines.length;
+}
+
+function renderSlideCanvas(slide, style, index, total) {
+  const W = 1080, H = 1350;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  if (style.bgGrad) {
+    const g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, style.bgGrad[0]);
+    g.addColorStop(1, style.bgGrad[1]);
+    ctx.fillStyle = g;
+  } else {
+    ctx.fillStyle = style.bg;
+  }
+  ctx.fillRect(0, 0, W, H);
+
+  const isCenter = slide.kind === 'hook' || slide.kind === 'closing';
+  const padX = 100;
+  const maxWidth = W - padX * 2;
+  const headlineFont = style.serif ? 'Playfair Display' : 'Inter';
+  ctx.textAlign = isCenter ? 'center' : 'left';
+  const anchorX = isCenter ? W / 2 : padX;
+
+  ctx.fillStyle = style.accent;
+  ctx.font = '600 28px Inter, sans-serif';
+  ctx.fillText(`${String(index + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}`, anchorX, 100);
+
+  ctx.font = '700 26px Inter, sans-serif';
+  const kindY = isCenter ? 420 : 780;
+  ctx.fillText(slideKindLabel(slide.kind).toUpperCase(), anchorX, kindY);
+
+  ctx.fillStyle = style.text;
+  const titleSize = isCenter ? 70 : 60;
+  ctx.font = `700 ${titleSize}px "${headlineFont}", serif`;
+  const titleY = kindY + 64;
+  const titleLineHeight = titleSize * 1.18;
+  const titleLines = wrapCanvasText(ctx, slide.title, anchorX, titleY, maxWidth, titleLineHeight);
+
+  ctx.font = '400 32px Inter, sans-serif';
+  ctx.globalAlpha = 0.85;
+  const bodyY = titleY + titleLines * titleLineHeight + 36;
+  wrapCanvasText(ctx, slide.body, anchorX, bodyY, maxWidth, 44);
+  ctx.globalAlpha = 1;
+
+  return canvas;
+}
+
+function slugify(text) {
+  return text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 40) || 'carrusel';
+}
+
+async function downloadCurrentCarousel() {
+  if (!currentCarousel) return;
+  await document.fonts.ready;
+  const style = getCarouselStyle(currentCarousel.styleId);
+  const base = slugify(currentCarousel.topic);
+  currentCarousel.slides.forEach((slide, i) => {
+    setTimeout(() => {
+      const canvas = renderSlideCanvas(slide, style, i, currentCarousel.slides.length);
+      canvas.toBlob(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${base}-filmina-${String(i + 1).padStart(2, '0')}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+      }, 'image/png');
+    }, i * 300);
+  });
+  showToast('Descargando filminas...');
+}
+
 /* ==================== METRICS ==================== */
 function buildSparkline(values) {
   const W = 80, H = 28;
@@ -1756,6 +2205,7 @@ function showToast(msg) {
 }
 
 /* ==================== INIT ==================== */
+renderStylePicker();
 goToView('overview');
 </script>
 </body>
